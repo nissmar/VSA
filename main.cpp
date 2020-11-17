@@ -11,7 +11,7 @@ using namespace std;
 
 MatrixXd V; // matrix storing vertex coordinates of the input mesh (n rows, 3 columns)
 MatrixXi F; // incidence relations between faces and edges (f columns)
-MatrixXi Pf; // matrix indicating the partition of each vertex
+MatrixXi Partition_faces; // matrix indicating the partition of each vertex
 
 
 bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier) {
@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
   igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
 
   //coloring 
-  Pf.setZero(F.rows(),1);
+  Partition_faces.setZero(F.rows(),1);
   MatrixXd C;
-  tcolor(Pf);
-  cout<<Pf<<endl;
-  igl::jet(Pf,true,C);
+  tcolor(Partition_faces);
+  cout<<Partition_faces<<endl;
+  igl::jet(Partition_faces,true,C);
 
   //  print the number of mesh elements
   cout << "Vertices: " << V.rows() << endl;
