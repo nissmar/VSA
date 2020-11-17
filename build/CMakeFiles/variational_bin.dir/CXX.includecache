@@ -11,11 +11,17 @@ igl/opengl/glfw/Viewer.h
 -
 igl/readOFF.h
 -
-igl/writeOBJ.h
+igl/jet.h
 -
 iostream
 -
 ostream
+-
+partitioning.cpp
+/Users/nissim/Documents/cours/X 3A/INF574/VSA/partitioning.cpp
+
+/Users/nissim/Documents/cours/X 3A/INF574/VSA/partitioning.cpp
+igl/opengl/glfw/Viewer.h
 -
 
 /Users/nissim/Documents/cours/X 3A/INF574/libigl/external/eigen/Eigen/Cholesky
@@ -1741,6 +1747,20 @@ Eigen/Core
 -
 internal_angles.cpp
 /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/internal_angles.cpp
+
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.cpp
+jet.h
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.h
+colormap.h
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/colormap.h
+
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.h
+igl_inline.h
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/igl_inline.h
+Eigen/Dense
+-
+jet.cpp
+/Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.cpp
 
 /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/list_to_matrix.cpp
 list_to_matrix.h

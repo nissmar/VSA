@@ -3,6 +3,7 @@
 
 CMakeFiles/variational_bin.dir/main.cpp.o
  /Users/nissim/Documents/cours/X 3A/INF574/VSA/main.cpp
+ /Users/nissim/Documents/cours/X 3A/INF574/VSA/partitioning.cpp
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/external/eigen/Eigen/Cholesky
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/external/eigen/Eigen/Core
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/external/eigen/Eigen/Dense
@@ -320,6 +321,8 @@ CMakeFiles/variational_bin.dir/main.cpp.o
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/igl_inline.h
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/internal_angles.cpp
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/internal_angles.h
+ /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.cpp
+ /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/jet.h
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/list_to_matrix.cpp
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/list_to_matrix.h
  /Users/nissim/Documents/cours/X 3A/INF574/libigl/include/igl/look_at.cpp
