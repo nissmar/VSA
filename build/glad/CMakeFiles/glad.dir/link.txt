@@ -1,0 +1,1 @@
+/usr/bin/libtool -c -static -o libglad.a CMakeFiles/glad.dir/src/glad.c.o 
