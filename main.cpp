@@ -4,8 +4,7 @@
 #include <iostream>
 #include <ostream>
 
-#include "partitioning.cpp"
-
+#include "partitioning.h"
 
 using namespace Eigen; // to use the classes provided by Eigen library
 using namespace std;
@@ -29,7 +28,7 @@ int main(int argc, char *argv[])
   //coloring 
   Pf.setZero(F.rows(),1);
   MatrixXd C;
-  color(Pf);
+  tcolor(Pf);
   igl::jet(Pf,true,C);
 
   //  print the number of mesh elements
