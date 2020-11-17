@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
   Pf.setZero(F.rows(),1);
   MatrixXd C;
   tcolor(Pf);
+  cout<<Pf<<endl;
   igl::jet(Pf,true,C);
 
   //  print the number of mesh elements
