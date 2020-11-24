@@ -23,12 +23,18 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
+  igl::readOFF("../data/gargoyle.off", V, F); // Load an input mesh in OFF format
+
+  
+  //  print the number of mesh elements
+  cout << "Vertices: " << V.rows() << endl;
+  cout << "Faces:    " << F.rows() << endl;
 
   // Face adjacency
   cout << "Computing face adjacency..." << endl;
-  Ad = face_adjacency(F);
+  Ad = face_adjacency(F,V.rows());
   cout << "   ...done" << endl;
+
   //coloring 
   // Partition_faces.setZero(F.rows(),1);
   // MatrixXd C;
@@ -40,10 +46,6 @@ int main(int argc, char *argv[])
   fcolor(Cf,Ad);
   MatrixXd C;
   igl::jet(Cf,true,C);
-  
-  //  print the number of mesh elements
-  cout << "Vertices: " << V.rows() << endl;
-  cout << "Faces:    " << F.rows() << endl;
 
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
