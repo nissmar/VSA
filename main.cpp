@@ -5,6 +5,7 @@
 #include <ostream>
 
 #include "partitioning.h"
+#include "distance.h"
 
 using namespace Eigen; // to use the classes provided by Eigen library
 using namespace std;
