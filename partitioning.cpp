@@ -1,5 +1,73 @@
 #include "partitioning.h"
 
+
+//******************Distortion error******************
+
+double triangle_area(Vector3d v1,Vector3d v2,Vector3d v3){
+
+  double l1 = (v2-v1).norm();
+  double l2 = (v3-v2).norm();
+  double l3 = (v1-v3).norm();
+  double p = (l1+l2+l3)/2.;
+  double S = pow(p*(p-l1)*(p-l2)*(p-l3),0.5);
+
+  return S;
+};
+
+double orthogonal_distance(Vector3d X, Vector3d N, Vector3d M){
+  return fabs((N).dot(M-X))/N.norm();
+
+};
+
+Vector3d triangle_normal(Vector3d v1,Vector3d v2,Vector3d v3){
+
+  Vector3d N = (v3-v1).cross(v2-v3);
+  double n = N.norm();
+
+  return N/n;
+
+};
+
+Vector3d triangle_normal(Vector3i T, MatrixXd V){
+  return triangle_normal(V.row(T(0)),V.row(T(1)),V.row(T(2)));
+}
+
+
+Vector3d triangle_center(Vector3i T, MatrixXd V){
+  return (V.row(T(0)) + V.row(T(1)) + V.row(T(2))) / 3.0;
+}
+
+double distance_L_2 (Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
+
+  Vector3d v1 = V.row(T(0));
+  Vector3d v2 = V.row(T(1));
+  Vector3d v3 = V.row(T(2));
+
+  double area = triangle_area(v1,v2,v3);
+  double d1 = orthogonal_distance(X,N,v1);
+  double d2 = orthogonal_distance(X,N,v2);
+  double d3 = orthogonal_distance(X,N,v3);
+
+  return (1/6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
+
+};
+
+double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V){
+
+  Vector3d v1 = V.row(T(0));
+  Vector3d v2 = V.row(T(1));
+  Vector3d v3 = V.row(T(2));
+  double area = triangle_area(v1,v2,v3);
+  Vector3d n = triangle_normal(v1,v2,v3);
+
+  return area*pow((n-N).norm(),2);
+
+};
+
+
+//******************Partitionning******************
+
+
 MatrixXi face_adjacency(MatrixXi F, int n) { // n: number of vertices
   // face adjacency matrix, O(m log(m)) performances
  
@@ -32,6 +100,15 @@ MatrixXi face_adjacency(MatrixXi F, int n) { // n: number of vertices
   return Ad;
 }
 
+MatrixXi uniform_proxies(int k, int n) {
+  MatrixXi Proxies;
+  Proxies.setZero(k,1);
+  for (int i=0;i<k;i++) {
+    Proxies(i) = (i*n)/k;
+  }
+  return Proxies;
+}
+
 void tcolor(MatrixXi &Pf) {
   int n = Pf.rows();
   for (int i=0; i<n;i++) {
@@ -40,6 +117,7 @@ void tcolor(MatrixXi &Pf) {
 }
 
 void fcolor(MatrixXd &Cf, MatrixXi Ad) {
+  // closeness to the original face
   Cf.setZero(Ad.rows(), 1);
   double color = 1.0;  
   priority_queue<pair<double, int>> q;
@@ -59,64 +137,62 @@ void fcolor(MatrixXd &Cf, MatrixXi Ad) {
   
 }
 
-//******************Distortion error******************
 
-double triangle_area(Vector3d v1,Vector3d v2,Vector3d v3){
+void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V) {
+  Cf.setZero(F.rows(),1);
+  Vector3d c = triangle_center(F.row(0), V);
+  Vector3d n = triangle_normal(F.row(0), V);
+  for (int i=0;i<F.rows();i++) {
+    Cf(i) = distance_L_2(F.row(i),c,n,V);
+  }
+  // closeness to the original face
+}
 
-  double l1 = (v2-v1).norm();
-  double l2 = (v3-v2).norm();
-  double l3 = (v1-v3).norm();
-  double p = (l1+l2+l3)/2.;
-  double S = pow(p*(p-l1)*(p-l2)*(p-l3),0.5);
 
-  return S;
-};
+void proxy_color(MatrixXi &Pf, MatrixXi Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad) {
+  int m=F.rows();
+  Pf.setZero(m, 1);
+  double color = 1.0;  
 
-double orthogonal_distance(pair<Vector3d , Vector3d> P, Vector3d M){
 
-  Vector3d X = P.first;
-  Vector3d N = P.second;
+  priority_queue<pair<double, int>> q; // distance, face, proxy
 
-  return fabs((N).dot(M-X))/N.norm();
+  // initialize proxies
+  int p = Proxies.rows();
+  Vector3d Proxies_center[p];
+  Vector3d Proxies_normal[p];
+  for (int i=0;i<p; i++) {
+    Proxies_center[i] = triangle_center(F.row(Proxies(i)), V);
+    Proxies_normal[i] = triangle_normal(F.row(Proxies(i)), V);
+    q.push(make_pair(1.0,Proxies(i)+m*(i+1))); // proxies start at 1
+  }
 
-};
+  pair<double, int> item;
+  int face;
+  int prox;
 
-Vector3d triangle_normal(Vector3d v1,Vector3d v2,Vector3d v3){
+  int c=0;
+  while (q.size()!=0) {
+    item = q.top();
+    q.pop();
+    prox = item.second/m;
+    face = item.second%m;
+    
 
-  Vector3d N = (v3-v1).cross(v2-v3);
-  double n = N.norm();
+    if (Pf(face)==0) {
+      Pf(face) = prox;
+      c++;
+      // if (c>300) return;
 
-  return N/n;
-
-};
-
-double distance_L_2 (Vector3i T, pair<Vector3d , Vector3d> P, MatrixXd V){
-
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
-
-  double area = triangle_area(v1,v2,v3);
-  double d1 = orthogonal_distance(P,v1);
-  double d2 = orthogonal_distance(P,v2);
-  double d3 = orthogonal_distance(P,v3);
-
-  return (1/6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
-
-};
-
-double distance_L_2_1(Vector3i T, pair<Vector3d , Vector3d> P, MatrixXd V){
-
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
-
-  Vector3d N = P.second;
-
-  double area = triangle_area(v1,v2,v3);
-  Vector3d n = triangle_normal(v1,v2,v3);
-
-  return area*pow((n-N).norm(),2);
+      for (int k=0;k<3;k++) {
+        int tri = Ad(face,k);
+        double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
+        q.push(make_pair(1.0-d, tri+m*prox));
+      }
+    }
+  }
+  
+}
 
 };
 

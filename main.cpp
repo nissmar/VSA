@@ -41,11 +41,28 @@ int main(int argc, char *argv[])
   // tcolor(Partition_faces);
   // igl::jet(Partition_faces,true,C);
 
-  // coloring 
-  MatrixXd Cf;
-  fcolor(Cf,Ad);
+  // coloring adjacency 
+  // MatrixXd Cf;
+  // fcolor(Cf,Ad);
+  // MatrixXd C;
+  // igl::jet(Cf,true,C);
+
+  // coloring distance 
+  // MatrixXd Cf;
+  // distance_color(Cf,F,V);
+  // MatrixXd C;
+  // igl::jet(Cf,true,C);
+
+  // coloring proxies
+  MatrixXi Proxies = uniform_proxies(15, F.rows());
+  MatrixXi Pf;
+  Pf.setZero(F.rows(),1);
+  proxy_color(Pf,  Proxies,  V,  F, Ad);
+
   MatrixXd C;
-  igl::jet(Cf,true,C);
+  igl::jet(Pf,true,C);
+
+
 
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
