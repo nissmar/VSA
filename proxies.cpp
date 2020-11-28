@@ -3,7 +3,7 @@
 
 Vector3d g(Vector3d v1,Vector3d v2,Vector3d v3){
 
-  return 0.5*(v1+v2+v3);
+  return (v1+v2+v3)/3.0;
 
 };
 
@@ -31,7 +31,7 @@ Vector3d new_Xi_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i){
+    if (R(f,0) == i+1){
 
       T = F.row(f);
       v1 = V.row(T(0));
@@ -72,7 +72,7 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i){
+    if (R(f,0) == i+1){
 
       T = F.row(f);
       v1 = V.row(T(0));
@@ -83,7 +83,7 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
       MT = M(v1,v2,v3);
       s = triangle_area(v1,v2,v3);
 
-      Ci += (2./72.)*s*MT*A*MT.transpose() + s*gT*gT.transpose();
+      Ci += (3./72.)*s*MT*A*MT.transpose() + s*gT*gT.transpose();
       w += s;
     }
   }
@@ -127,7 +127,7 @@ Vector3d new_Ni_L_2_1 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i){
+    if (R(f,0) == i+1){
 
       T = F.row(f);
       v1 = V.row(T(0));
@@ -157,7 +157,7 @@ MatrixXd new_proxies_L_2(MatrixXi R, MatrixXi F, MatrixXd V, int k){
     Xi = new_Xi_L_2(R,i,F,V);
     Ni = new_Ni_L_2(R,i,F,V);
     P.row(i) = Xi;
-    P.row(2*i) = Ni;
+    P.row(k+i) = Ni.normalized();
   }
 
   return P;
@@ -175,7 +175,7 @@ MatrixXd new_proxies_L_2_1(MatrixXi R, MatrixXi F, MatrixXd V, int k){
     Xi = new_Xi_L_2_1(R,i,F,V);
     Ni = new_Ni_L_2_1(R,i,F,V);
     P.row(i) = Xi;
-    P.row(2*i) = Ni;
+    P.row(k+i) = Ni.normalized();
   }
 
   return P;
