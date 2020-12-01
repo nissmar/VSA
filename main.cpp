@@ -19,11 +19,12 @@ MatrixXd C; // the coloring
 MatrixXd Proxies;
 MatrixXi Ad; // face adjacency
 int p; // number of proxies
+int norme; //0 = norm L_2, 1 = norm L_2_1
 
 void debug_regions_vides(MatrixXi R, int p){
   cout<<"Regions vides"<<endl;
   bool trouve_j;
-  for (int j=1 ; j<=p ; j++){
+  for (int j=0 ; j<p ; j++){
     trouve_j = false;
     for (int i=0 ; i<R.rows() ; i++){
       if (R(i,0)==j){
@@ -57,11 +58,10 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     viewer.data().set_colors(C);
   }
   if (key=='3') {
-    proxy_color(R, Proxies, V,  F, Ad);
-    debug_regions_vides(R, p);
-    Proxies = new_proxies_L_2(R, F, V, p);
-    // Proxies = new_proxies_L_2_1(R, F, V, p);
-    cout<<Proxies<<endl;
+   
+    proxy_color(R, Proxies, V,  F, Ad, norme);
+    Proxies = new_proxies(R, F, V, p, norme);
+    
     igl::jet(R,true,C);
     viewer.data().set_colors(C);
 
@@ -77,7 +77,6 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 int main(int argc, char *argv[])
 {
   igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
-
   
   //  print the number of mesh elements
   cout << "Vertices: " << V.rows() << endl;
@@ -106,14 +105,25 @@ int main(int argc, char *argv[])
   // MatrixXd C;
   // igl::jet(Cf,true,C);
 
-  
+  //test L2
+  /**Vector3d v1(0,0,1);
+  Vector3d v2(1,0,1);
+  Vector3d v3(0,1,1);
+  MatrixXd V_test(3,3);
+  V_test.row(0) = v1;
+  V_test.row(1) = v2;
+  V_test.row(2) = v3;
+  MatrixXi F_test(1,3);
+  F_test.row(0) = Vector3i(0,1,2);
+  Vector3d X(0,0,0);
+  Vector3d N(0,0,1);
+  cout<<"distance : "<<distance_L_2_1(F_test.row(0),N,V_test)<<endl;*/
 
   // coloring proxies
   p = 10;
-  initial_partition(p, R, V,  F, Ad);
-  debug_regions_vides(R, p);
-  Proxies = new_proxies_L_2(R, F, V, p);
-  // Proxies = new_proxies_L_2_1(R, F, V, p);
+  norme = 1;
+  initial_partition(p, R, V, F, Ad, norme);
+  Proxies = new_proxies(R, F, V, p, norme);
   igl::jet(R,true,C);
 
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer

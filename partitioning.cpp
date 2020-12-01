@@ -75,19 +75,18 @@ void fcolor(MatrixXd &Cf, MatrixXi Ad) {
 }
 
 
-void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V) {
+void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V, int norme) {
   // closeness to the original face with the l2 or L21 distance
   Cf.setZero(F.rows(),1);
   Vector3d c = triangle_center(F.row(0), V);
   Vector3d n = triangle_normal(F.row(0), V);
   for (int i=0;i<F.rows();i++) {
-    Cf(i) = distance_L_2(F.row(i),c,n,V);
-    // Cf(i) = distance_L_2_1(F.row(i),n,V);
+    Cf(i) = distance(F.row(i),c,n,V, norme);
   }
 }
 
 
-void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) {
+void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
   int m=F.rows();
   R = -MatrixXi::Ones(m, 1);
 
@@ -97,79 +96,14 @@ void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) 
   MatrixXi Proxies = uniform_proxies(p, V.rows());
   Vector3d Proxies_center[p];
   Vector3d Proxies_normal[p];
+
   for (int i=0;i<p; i++) {
     Proxies_center[i] = triangle_center(F.row(Proxies(i)), V);
     Proxies_normal[i] = triangle_normal(F.row(Proxies(i)), V);
-    q.push(make_pair(1.0,Proxies(i)+m*(i))); // proxies start at 1
-  }
-
-  pair<double, int> item;
-  int face;
-  int prox;
-
-  while (q.size()!=0) {
-    item = q.top();
-    q.pop();
-    prox = item.second/m;
-    face = item.second%m;
-    
-
-    if (R(face)==-1) {
-      R(face) = prox;
-
-      for (int k=0;k<3;k++) {
-        int tri = Ad(face,k);
-        double d = distance_L_2(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V);
-        // double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
-        q.push(make_pair(1.0-d, tri+m*prox));
-      }
-    }
-  }
-  
-}
-
-
-VectorXi find_best_triangles(MatrixXd Proxies, MatrixXd V, MatrixXi F) {
-  int p=Proxies.rows()/2;
-  VectorXi triangles(p);
-  VectorXd distances(p);
-  double d;
-  
-  for (int i=0; i<p;i++) distances(i) = MAXFLOAT;
-
-  for (int i=0; i<F.rows();i++) {
-    for (int j=0; j<p;j++) {
-      d = distance_L_2(F.row(i), Proxies.row(j), Proxies.row(j+p),  V);
-      // d = distance_L_2_1(F.row(i), Proxies.row(j+p),  V);
-      if (d < distances(j)) {
-        distances(j) = d;
-        triangles(j) = i;
-      }
-    }
-  }
-  return triangles;
-}
-
-
-void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad) {
-  int m=F.rows();
-  R = -MatrixXi::Ones(m, 1);
-
-  priority_queue<pair<double, int>> q; // distance, proxy
-
-  // initialize proxies
-  int p = Proxies.rows()/2;
-  Vector3d Proxies_center[p];
-  Vector3d Proxies_normal[p];
-  VectorXi triangles = find_best_triangles(Proxies,V,F);
-  for (int i=0;i<p; i++) {
-    Proxies_center[i] = Proxies.row(i);
-    Proxies_normal[i] = Proxies.row(i+p);
-    R(triangles(i)) = i;
+    R(Proxies(i)) = i;
     for (int k=0;k<3;k++) {
-        int tri = Ad(triangles(i),k);
-        double d = distance_L_2(F.row(tri), Proxies_center[i], Proxies_normal[i], V);
-        // double d = distance_L_2_1(F.row(tri), Proxies_normal[i], V);
+        int tri = Ad(Proxies(i),k);
+        double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
         q.push(make_pair(1.0-d, tri+m*(i)));
     }
   }
@@ -187,14 +121,85 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
 
     if (R(face)==-1) {
       R(face) = prox;
+
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
-        double d = distance_L_2(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V);
-        // double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
+        double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
         q.push(make_pair(1.0-d, tri+m*prox));
       }
     }
   }
   
+}
+
+
+VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme) {
+  int p=Proxies.rows()/2;
+  VectorXi triangles(p);
+  VectorXd distances(p);
+  double d;
+  
+  for (int i=0; i<p;i++) distances(i) = MAXFLOAT;
+  //for each region j
+  for (int j=0; j<p;j++) {
+    //look at each face i
+    for (int i=0; i<F.rows();i++) {
+      //if the face i is in the region j, find if it's the best one
+      if (R(i,0)==j){
+        d = distance(F.row(i), Proxies.row(j), Proxies.row(j+p),  V, norme);
+        if (d < distances(j)) {
+          distances(j) = d;
+          triangles(j) = i;
+        }
+      }
+    }
+  }
+  return triangles;
+}
+
+
+void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+  int m=F.rows();
+  MatrixXi new_R = -MatrixXi::Ones(m, 1);
+
+  priority_queue<pair<double, int>> q; // distance, proxy
+
+  // initialize proxies
+  int p = Proxies.rows()/2;
+  Vector3d Proxies_center[p];
+  Vector3d Proxies_normal[p];
+  VectorXi triangles = find_best_triangles(R,Proxies,V,F,norme);
+  for (int i=0;i<p; i++) {
+    Proxies_center[i] = Proxies.row(i);
+    Proxies_normal[i] = Proxies.row(i+p);
+    R(triangles(i)) = i;
+    for (int k=0;k<3;k++) {
+        int tri = Ad(triangles(i),k);
+        double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
+        q.push(make_pair(1.0-d, tri+m*(i)));
+    }
+  }
+
+  pair<double, int> item;
+  int face;
+  int prox;
+
+  while (q.size()!=0) {
+    item = q.top();
+    q.pop();
+    prox = item.second/m;
+    face = item.second%m;
+    
+
+    if (new_R(face)==-1) {
+      new_R(face) = prox;
+      for (int k=0;k<3;k++) {
+        int tri = Ad(face,k);
+        double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
+        q.push(make_pair(1.0-d, tri+m*prox));
+      }
+    }
+  }
+  R = new_R;
 }
 

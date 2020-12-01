@@ -54,7 +54,7 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   //Compute the Covariance Matrix Ci
   MatrixXd Ci = MatrixXd::Zero(3,3); 
-  double w;
+  double w = 0.;
   MatrixXd Xi = new_Xi_L_2(R,i,F,V);
 
   MatrixXd A(3,3);
@@ -181,4 +181,16 @@ MatrixXd new_proxies_L_2_1(MatrixXi R, MatrixXi F, MatrixXd V, int k){
 
   return P;
 
+};
+
+MatrixXd new_proxies(MatrixXi R, MatrixXi F, MatrixXd V, int k, int norme){
+  if (norme == 0){
+    return new_proxies_L_2(R,F,V,k);
+  }
+  else if (norme == 1){
+    return new_proxies_L_2_1(R,F,V,k);
+  }
+  else {
+    cout<<"wrong norme parameter"<<endl;
+  }
 };

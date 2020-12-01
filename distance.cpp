@@ -49,7 +49,7 @@ double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
   double d2 = orthogonal_distance(X,N,v2);
   double d3 = orthogonal_distance(X,N,v3);
 
-  return (1/6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
+  return (1./6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
 
 };
 
@@ -63,4 +63,16 @@ double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V){
 
   return area*pow((n-N).norm(),2);
 
+};
+
+double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
+  if (norme == 0){
+    return distance_L_2(T,X,N,V);
+  }
+  else if (norme == 1){
+    return distance_L_2_1(T,N,V);
+  }
+  else {
+    cout<<"wrong norme parameter"<<endl;
+  }
 };
