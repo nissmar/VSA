@@ -20,6 +20,22 @@ MatrixXd Proxies;
 MatrixXi Ad; // face adjacency
 int p; // number of proxies
 
+void debug_regions_vides(MatrixXi R, int p){
+  bool trouve_j;
+  for (int j=1 ; j<=p ; j++){
+    trouve_j = false;
+    for (int i=0 ; i<R.rows() ; i++){
+      if (R(i,0)==j){
+        trouve_j = true;
+      }
+    }
+    if (trouve_j == false){
+      cout<<j<<endl;
+    }
+  }
+  cout<<"fin"<<endl;
+};
+
 void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
    for (int i =0; i<p;i++) {
     viewer.append_mesh();
@@ -41,8 +57,10 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='3') {
     proxy_color(R, Proxies, V,  F, Ad);
-    Proxies = new_proxies_L_2_1(R, F, V, p);
-    cout << Proxies << endl;
+    debug_regions_vides(R, p);
+    Proxies = new_proxies_L_2(R, F, V, p);
+    //Proxies = new_proxies_L_2_1(R, F, V, p);
+    
     igl::jet(R,true,C);
     viewer.data().set_colors(C);
 
@@ -90,7 +108,10 @@ int main(int argc, char *argv[])
   // coloring proxies
   p = 30;
   initial_partition(p, R, V,  F, Ad);
+  debug_regions_vides(R, p);
   Proxies = new_proxies_L_2(R, F, V, p);
+  //Proxies = new_proxies_L_2_1(R, F, V, p);
+  
   igl::jet(R,true,C);
 
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer

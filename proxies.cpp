@@ -3,7 +3,7 @@
 
 Vector3d g(Vector3d v1,Vector3d v2,Vector3d v3){
 
-  return (v1+v2+v3)/3.0;
+  return (1./3.)*(v1+v2+v3);
 
 };
 
@@ -45,7 +45,7 @@ Vector3d new_Xi_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
       w += s;
     }
   }
-
+  
   return Xi/w;
 
 };
@@ -83,13 +83,14 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
       MT = M(v1,v2,v3);
       s = triangle_area(v1,v2,v3);
 
-      Ci += (3./72.)*s*MT*A*MT.transpose() + s*gT*gT.transpose();
-      w += s;
+      Ci += (2./72.)*s*MT*A*MT.transpose() + s*gT*gT.transpose();
+      
     }
+    w += s;
   }
-
+  
   Ci = Ci - w*Xi*Xi.transpose();
-
+  
   //Find the eigenvector of the min eigenvalue of Ci
   EigenSolver<MatrixXd> es(Ci);
 
@@ -98,7 +99,7 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
   valp = es.eigenvalues().real();
   vectp = es.eigenvectors().real();
 
-  float min_valp;
+  double min_valp;
   MatrixXd::Index minRow, minCol;
   Vector3d Ni;
   min_valp = valp.minCoeff(&minRow,&minCol);

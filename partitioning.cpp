@@ -81,8 +81,8 @@ void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V) {
   Vector3d c = triangle_center(F.row(0), V);
   Vector3d n = triangle_normal(F.row(0), V);
   for (int i=0;i<F.rows();i++) {
-    // Cf(i) = distance_L_2(F.row(i),c,n,V);
-    Cf(i) = distance_L_2_1(F.row(i),n,V);
+    Cf(i) = distance_L_2(F.row(i),c,n,V);
+    //Cf(i) = distance_L_2_1(F.row(i),n,V);
   }
 }
 
@@ -123,6 +123,7 @@ void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) 
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
         double d = distance_L_2(F.row(tri), Proxies_center[prox-1], Proxies_normal[prox-1], V);
+        //double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
         q.push(make_pair(1.0-d, tri+m*prox));
       }
     }
@@ -142,6 +143,7 @@ VectorXi find_best_triangles(MatrixXd Proxies, MatrixXd V, MatrixXi F) {
   for (int i=0; i<F.rows();i++) {
     for (int j=0; j<p;j++) {
       d = distance_L_2(F.row(i), Proxies.row(j), Proxies.row(j+p),  V);
+      //d = distance_L_2_1(F.row(i), Proxies.row(j+p),  V);
       if (d < distances(j)) {
         distances(j) = d;
         triangles(j) = i;
@@ -187,6 +189,7 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
         double d = distance_L_2(F.row(tri), Proxies_center[prox-1], Proxies_normal[prox-1], V);
+        //double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
         q.push(make_pair(1.0-d, tri+m*prox));
       }
     }

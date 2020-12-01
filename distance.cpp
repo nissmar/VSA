@@ -14,7 +14,9 @@ double triangle_area(Vector3d v1,Vector3d v2,Vector3d v3){
 };
 
 double orthogonal_distance(Vector3d X, Vector3d N, Vector3d M){
-  return fabs((N).dot(M-X))/N.norm();
+  
+  double n = N.norm();
+  return fabs((N).dot(M-X))/n;
 
 };
 
