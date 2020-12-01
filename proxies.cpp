@@ -31,7 +31,7 @@ Vector3d new_Xi_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i+1){
+    if (R(f,0) == i){
 
       T = F.row(f);
       v1 = V.row(T(0));
@@ -72,7 +72,7 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i+1){
+    if (R(f,0) == i){
 
       T = F.row(f);
       v1 = V.row(T(0));
@@ -128,7 +128,7 @@ Vector3d new_Ni_L_2_1 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
 
   for (int f=0 ; f<R.rows() ; f++){
     //we only add the triangles that belong to the region i
-    if (R(f,0) == i+1){
+    if (R(f,0) == i){
 
       T = F.row(f);
       v1 = V.row(T(0));

@@ -89,7 +89,7 @@ void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V) {
 
 void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) {
   int m=F.rows();
-  R.setZero(m, 1);
+  R = -MatrixXi::Ones(m, 1);
 
   priority_queue<pair<double, int>> q; // distance, face, proxy
 
@@ -100,14 +100,13 @@ void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) 
   for (int i=0;i<p; i++) {
     Proxies_center[i] = triangle_center(F.row(Proxies(i)), V);
     Proxies_normal[i] = triangle_normal(F.row(Proxies(i)), V);
-    q.push(make_pair(1.0,Proxies(i)+m*(i+1))); // proxies start at 1
+    q.push(make_pair(1.0,Proxies(i)+m*(i))); // proxies start at 1
   }
 
   pair<double, int> item;
   int face;
   int prox;
 
-  int c=0;
   while (q.size()!=0) {
     item = q.top();
     q.pop();
@@ -115,14 +114,12 @@ void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad) 
     face = item.second%m;
     
 
-    if (R(face)==0) {
+    if (R(face)==-1) {
       R(face) = prox;
-      c++;
-      // if (c>300) return;
 
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
-        double d = distance_L_2(F.row(tri), Proxies_center[prox-1], Proxies_normal[prox-1], V);
+        double d = distance_L_2(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V);
         // double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
         q.push(make_pair(1.0-d, tri+m*prox));
       }
@@ -156,7 +153,7 @@ VectorXi find_best_triangles(MatrixXd Proxies, MatrixXd V, MatrixXi F) {
 
 void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad) {
   int m=F.rows();
-  R.setZero(m, 1);
+  R = -MatrixXi::Ones(m, 1);
 
   priority_queue<pair<double, int>> q; // distance, proxy
 
@@ -168,12 +165,12 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   for (int i=0;i<p; i++) {
     Proxies_center[i] = Proxies.row(i);
     Proxies_normal[i] = Proxies.row(i+p);
-    R(triangles(i)) = i+1;
+    R(triangles(i)) = i;
     for (int k=0;k<3;k++) {
         int tri = Ad(triangles(i),k);
         double d = distance_L_2(F.row(tri), Proxies_center[i], Proxies_normal[i], V);
         // double d = distance_L_2_1(F.row(tri), Proxies_normal[i], V);
-        q.push(make_pair(1.0-d, tri+m*(i+1)));
+        q.push(make_pair(1.0-d, tri+m*(i)));
     }
   }
 
@@ -181,7 +178,6 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   int face;
   int prox;
 
-  int c=0;
   while (q.size()!=0) {
     item = q.top();
     q.pop();
@@ -189,12 +185,11 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
     face = item.second%m;
     
 
-    if (R(face)==0) {
+    if (R(face)==-1) {
       R(face) = prox;
-      c++;
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
-        double d = distance_L_2(F.row(tri), Proxies_center[prox-1], Proxies_normal[prox-1], V);
+        double d = distance_L_2(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V);
         // double d = distance_L_2_1(F.row(tri), Proxies_normal[prox-1], V);
         q.push(make_pair(1.0-d, tri+m*prox));
       }
