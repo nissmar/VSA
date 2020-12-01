@@ -7,6 +7,7 @@
 #include "partitioning.h"
 #include "distance.h"
 #include "proxies.h"
+#include "remeshing.h"
 
 
 using namespace Eigen; // to use the classes provided by Eigen library
@@ -47,6 +48,16 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
         Eigen::RowVector3d(1, 0, 0));
   }
 }
+
+void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
+  VectorXi anchors = anchor_points(R,Ad,F,V.rows());
+
+  viewer.append_mesh();
+  for (int i =0; i<anchors.rows(); i++) {
+    viewer.data(0).add_points(V.row(anchors(i)), Eigen::RowVector3d(0, 0, 1));
+  }
+}
+
 bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier) {
   cout << "pressed Key: " << key << " " << (unsigned int)key << endl;
   if (key=='1') {
@@ -66,7 +77,9 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     viewer.data().set_colors(C);
 
     viewer.data(0).clear();
-    // draw_tangent(viewer);
+  }
+  if (key=='4') {
+    draw_anchors(viewer);
   }
   return false;
 }
