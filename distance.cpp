@@ -22,7 +22,7 @@ double orthogonal_distance(Vector3d X, Vector3d N, Vector3d M){
 
 Vector3d triangle_normal(Vector3d v1,Vector3d v2,Vector3d v3){
 
-  Vector3d N = (v3-v1).cross(v2-v3);
+  Vector3d N = (v2-v1).cross(v3-v1);
   double n = N.norm();
 
   return N/n;

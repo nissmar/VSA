@@ -21,6 +21,7 @@ MatrixXi Ad; // face adjacency
 int p; // number of proxies
 
 void debug_regions_vides(MatrixXi R, int p){
+  cout<<"Regions vides"<<endl;
   bool trouve_j;
   for (int j=1 ; j<=p ; j++){
     trouve_j = false;
@@ -59,8 +60,8 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     proxy_color(R, Proxies, V,  F, Ad);
     debug_regions_vides(R, p);
     Proxies = new_proxies_L_2(R, F, V, p);
-    //Proxies = new_proxies_L_2_1(R, F, V, p);
-    
+    // Proxies = new_proxies_L_2_1(R, F, V, p);
+    cout<<Proxies<<endl;
     igl::jet(R,true,C);
     viewer.data().set_colors(C);
 
@@ -105,19 +106,35 @@ int main(int argc, char *argv[])
   // MatrixXd C;
   // igl::jet(Cf,true,C);
 
+  
+
   // coloring proxies
-  p = 30;
+  p = 10;
   initial_partition(p, R, V,  F, Ad);
   debug_regions_vides(R, p);
   Proxies = new_proxies_L_2(R, F, V, p);
-  //Proxies = new_proxies_L_2_1(R, F, V, p);
-  
+  // Proxies = new_proxies_L_2_1(R, F, V, p);
   igl::jet(R,true,C);
 
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer
+
+  //showing normals
+  // viewer.append_mesh();
+  // for (int j=0;j<F.rows();j++) {
+  //   Vector3d center = triangle_center(F.row(j),V);
+  //   Vector3d norm = triangle_normal(F.row(j),V);
+  //   viewer.data(0).add_edges(
+  //       center.transpose(),
+  //       center.transpose()+norm.transpose()/10.0,
+  //       Eigen::RowVector3d(1, 0, 0));
+  // }
+
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
   draw_tangent(viewer);
   viewer.data().set_mesh(V, F); // load a face-based representation of the input 3d shape
   viewer.data().set_colors(C);
   viewer.launch(); // run the editor
+
+  
 }
+
