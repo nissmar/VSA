@@ -13,3 +13,5 @@ Vector3d triangle_center(Vector3i T, MatrixXd V);
 double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V);
 double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V);
 double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme);
+
+double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme);

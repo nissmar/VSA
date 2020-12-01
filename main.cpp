@@ -21,6 +21,8 @@ MatrixXd Proxies;
 MatrixXi Ad; // face adjacency
 int p; // number of proxies
 int norme; //0 = norm L_2, 1 = norm L_2_1
+int iterations;
+queue<pair<int,double>> global_error_points; //contains the global_distortion_error according to the number of iterations
 
 void debug_regions_vides(MatrixXi R, int p){
   cout<<"Regions vides"<<endl;
@@ -72,7 +74,11 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
    
     proxy_color(R, Proxies, V,  F, Ad, norme);
     Proxies = new_proxies(R, F, V, p, norme);
-    
+    iterations += 1;
+    double error = global_distortion_error(R,Proxies,V,F,norme);
+    cout<<"Global Error : "<<error<<endl;
+    global_error_points.push(make_pair(iterations,error));
+
     igl::jet(R,true,C);
     viewer.data().set_colors(C);
 
@@ -137,8 +143,11 @@ int main(int argc, char *argv[])
   norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
+  iterations = 1;
+  double error = global_distortion_error(R,Proxies,V,F,norme);
+  cout<<"Global Error : "<<error<<endl;
+  global_error_points.push(make_pair(iterations,error));
   igl::jet(R,true,C);
-
   igl::opengl::glfw::Viewer viewer; // create the 3d viewer
 
   //showing normals
@@ -158,6 +167,13 @@ int main(int argc, char *argv[])
   viewer.data().set_colors(C);
   viewer.launch(); // run the editor
 
-  
+  cout<<"erreurs par itération \n"<<endl;
+  pair<int,double> item;
+  while(global_error_points.size()!=0){
+    item = global_error_points.front();
+    cout<<item.first<<" "<<item.second<<endl;
+    global_error_points.pop();
+  }
+  cout<<"done"<<endl;
 }
 
