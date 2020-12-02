@@ -140,18 +140,14 @@ VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi 
   double d;
   
   for (int i=0; i<p;i++) distances(i) = MAXFLOAT;
-  //for each region j
-  for (int j=0; j<p;j++) {
-    //look at each face i
-    for (int i=0; i<F.rows();i++) {
-      //if the face i is in the region j, find if it's the best one
-      if (R(i,0)==j){
-        d = distance(F.row(i), Proxies.row(j), Proxies.row(j+p),  V, norme);
-        if (d < distances(j)) {
-          distances(j) = d;
-          triangles(j) = i;
-        }
-      }
+  
+  //look at each face i
+  for (int i=0; i<F.rows();i++) {
+    int j = R(i,0);
+    d = distance(F.row(i), Proxies.row(j), Proxies.row(j+p),  V, norme);
+    if (d < distances(j)) {
+      distances(j) = d;
+      triangles(j) = i;
     }
   }
   return triangles;
@@ -160,8 +156,6 @@ VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi 
 
 void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
   int m=F.rows();
-  MatrixXi new_R = -MatrixXi::Ones(m, 1);
-
   priority_queue<pair<double, int>> q; // distance, proxy
 
   // initialize proxies
@@ -169,6 +163,10 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   Vector3d Proxies_center[p];
   Vector3d Proxies_normal[p];
   VectorXi triangles = find_best_triangles(R,Proxies,V,F,norme);
+  cout << "   triangles found" <<endl;
+
+  // reset R
+  R = -MatrixXi::Ones(m, 1);
   for (int i=0;i<p; i++) {
     Proxies_center[i] = Proxies.row(i);
     Proxies_normal[i] = Proxies.row(i+p);
@@ -183,6 +181,7 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   pair<double, int> item;
   int face;
   int prox;
+  cout << "   starting loop" <<endl;
 
   while (q.size()!=0) {
     item = q.top();
@@ -191,8 +190,8 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
     face = item.second%m;
     
 
-    if (new_R(face)==-1) {
-      new_R(face) = prox;
+    if (R(face)==-1) {
+      R(face) = prox;
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
         double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
@@ -200,6 +199,5 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
       }
     }
   }
-  R = new_R;
 }
 

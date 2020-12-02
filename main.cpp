@@ -69,14 +69,14 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     viewer.data().set_colors(C);
   }
   if (key=='3') {
-   
+    // debug_regions_vides(R,p);
+    cout << "regions" <<endl;
     proxy_color(R, Proxies, V,  F, Ad, norme);
+    cout << "proxy" <<endl;
     Proxies = new_proxies(R, F, V, p, norme);
     
     igl::jet(R,true,C);
     viewer.data().set_colors(C);
-
-    viewer.data(0).clear();
   }
   if (key=='4') {
     draw_anchors(viewer);
@@ -89,7 +89,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
+  igl::readOFF("../data/gargoyle.off", V, F); // Load an input mesh in OFF format
   
   //  print the number of mesh elements
   cout << "Vertices: " << V.rows() << endl;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   cout<<"distance : "<<distance_L_2_1(F_test.row(0),N,V_test)<<endl;*/
 
   // coloring proxies
-  p = 10;
+  p = 180;
   norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
@@ -153,11 +153,9 @@ int main(int argc, char *argv[])
   // }
 
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
-  draw_tangent(viewer);
   viewer.data().set_mesh(V, F); // load a face-based representation of the input 3d shape
   viewer.data().set_colors(C);
   viewer.launch(); // run the editor
 
-  
 }
 
