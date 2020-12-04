@@ -56,7 +56,7 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
 }
 
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
-  VectorXi anchors = anchor_points(*he,R,V.rows());
+  VectorXi anchors = anchor_points(*he, R, V);
 
   viewer.append_mesh();
   for (int i =0; i<anchors.rows(); i++) {
@@ -75,9 +75,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='3') {
     // debug_regions_vides(R,p);
-    cout << "regions" <<endl;
     proxy_color(R, Proxies, V,  F, Ad, norme);
-    cout << "proxy" <<endl;
     Proxies = new_proxies(R, F, V, p, norme);
     iterations += 1;
     double error = global_distortion_error(R,Proxies,V,F,norme);
@@ -85,7 +83,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     global_error_points.push(make_pair(iterations,error));
 
     igl::jet(R,true,C);
-    viewer.data().set_colors(C);
+    viewer.data(0).set_colors(C);
   }
   if (key=='4') {
     draw_anchors(viewer);
@@ -98,7 +96,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/high_genus.off", V, F); // Load an input mesh in OFF format
+  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
   HalfedgeBuilder* builder=new HalfedgeBuilder();  
   HalfedgeDS he2 = builder->createMesh(V.rows(), F); 
   he = &he2;
@@ -144,7 +142,7 @@ int main(int argc, char *argv[])
   cout<<"distance : "<<distance_L_2_1(F_test.row(0),N,V_test)<<endl;*/
 
   // coloring proxies
-  p = 18;
+  p = 3;
   norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);

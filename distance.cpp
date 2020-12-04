@@ -105,3 +105,13 @@ double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixX
   return E;
 
 };
+
+
+
+double distance_projection(MatrixXd V, int anchor1, int anchor2, int v){
+  Vector3d x = V.row(v)-V.row(anchor1);
+  Vector3d s = V.row(anchor2)-V.row(anchor1); //segment
+  if (s.norm()==0) return 0.;
+  double t = x.dot(s)/s.norm();
+  return (x-t*s/s.norm()).norm();
+};

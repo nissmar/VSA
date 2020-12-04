@@ -4,8 +4,10 @@
 #include "HalfedgeDS.cpp"
 #endif
 
+#include "distance.h"
+
 
 using namespace Eigen;
 using namespace std;
 
-VectorXi anchor_points(HalfedgeDS he, MatrixXi R, int n);
+VectorXi anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V);

@@ -15,3 +15,5 @@ double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V);
 double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme);
 
 double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme);
+
+double distance_projection(MatrixXd V, int anchor1, int anchor2, int v);
