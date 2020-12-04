@@ -76,3 +76,32 @@ double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
     cout<<"wrong norme parameter"<<endl;
   }
 };
+
+double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme){
+
+  int p = Proxies.rows()/2; //number of proxies
+  int f = F.rows(); //number of faces
+  double E = 0.; //global error
+
+  //sums the distortion errors of each triangle with its proxy
+
+  int num_proxy; //index of the region/proxy
+  Vector3d X; //center of the proxy
+  Vector3d N; //normal of the proxy
+  Vector3i T; //triangle
+  double e; //error of the triangle T with its proxy X,N
+  
+  for (int i=0 ; i<f ; i++){
+
+    num_proxy = R(i,0);
+    X = Proxies.row(num_proxy);
+    N = Proxies.row(num_proxy+p);
+    T = F.row(i);
+    e = distance(T,X,N,V,norme);
+    E += e;
+
+  }
+
+  return E;
+
+};
