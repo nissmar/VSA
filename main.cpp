@@ -4,6 +4,8 @@
 #include <iostream>
 #include <ostream>
 
+#include "HalfedgeBuilder.cpp"
+
 #include "partitioning.h"
 #include "distance.h"
 #include "proxies.h"
@@ -21,6 +23,7 @@ MatrixXd Proxies;
 MatrixXi Ad; // face adjacency
 int p; // number of proxies
 int norme; //0 = norm L_2, 1 = norm L_2_1
+HalfedgeDS* he;
 
 void debug_regions_vides(MatrixXi R, int p){
   cout<<"Regions vides"<<endl;
@@ -51,7 +54,7 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
 }
 
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
-  VectorXi anchors = anchor_points(R,Ad,F,V.rows());
+  VectorXi anchors = anchor_points(*he,R,V.rows());
 
   viewer.append_mesh();
   for (int i =0; i<anchors.rows(); i++) {
@@ -89,8 +92,10 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/gargoyle.off", V, F); // Load an input mesh in OFF format
-  
+  igl::readOFF("../data/high_genus.off", V, F); // Load an input mesh in OFF format
+  HalfedgeBuilder* builder=new HalfedgeBuilder();  
+  HalfedgeDS he2 = builder->createMesh(V.rows(), F); 
+  he = &he2;
   //  print the number of mesh elements
   cout << "Vertices: " << V.rows() << endl;
   cout << "Faces:    " << F.rows() << endl;
@@ -133,7 +138,7 @@ int main(int argc, char *argv[])
   cout<<"distance : "<<distance_L_2_1(F_test.row(0),N,V_test)<<endl;*/
 
   // coloring proxies
-  p = 180;
+  p = 18;
   norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
