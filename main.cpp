@@ -9,7 +9,7 @@
 #include "partitioning.h"
 #include "distance.h"
 #include "proxies.h"
-#include "remeshing.h"
+#include "anchors.h"
 
 
 using namespace Eigen; // to use the classes provided by Eigen library
@@ -58,12 +58,14 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
 }
 
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
-  VectorXi anchors = anchor_points(*he, R, V);
-
+  vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies);
   viewer.append_mesh();
-  for (int i =0; i<anchors.rows(); i++) {
-    viewer.data(0).add_points(V.row(anchors(i)), Eigen::RowVector3d(0, 0, 1));
+  for(size_t i = 0; i < anchors.size(); i++) {
+    for(size_t j = 0; j < anchors[i].size(); j++) {
+      viewer.data(0).add_points(V.row(anchors[i][j]), Eigen::RowVector3d(i%3, (i+1)%3,  (i+2)%3));
+    }
   }
+    
 }
 
 bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier) {
@@ -113,7 +115,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
+  igl::readOFF("../data/gargoyle.off", V, F); // Load an input mesh in OFF format
   HalfedgeBuilder* builder=new HalfedgeBuilder();  
   HalfedgeDS he2 = builder->createMesh(V.rows(), F); 
   he = &he2;
@@ -159,7 +161,7 @@ int main(int argc, char *argv[])
   cout<<"distance : "<<distance_L_2_1(F_test.row(0),N,V_test)<<endl;*/
 
   // coloring proxies
-  p = 3;
+  p = 100;
   norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
