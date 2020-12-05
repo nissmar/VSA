@@ -10,4 +10,4 @@
 using namespace Eigen;
 using namespace std;
 
-VectorXi anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V);
+vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies);

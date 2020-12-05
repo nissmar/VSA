@@ -108,10 +108,18 @@ double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixX
 
 
 
-double distance_projection(MatrixXd V, int anchor1, int anchor2, int v){
+double distance_projection(MatrixXd V, MatrixXd Proxies, int anchor1, int anchor2, int v, int r1, int r2){
+  int p = Proxies.rows()/2;
+  // sin angle
+  Vector3d p1 = Proxies.row(p+r1);
+  Vector3d p2 = Proxies.row(p+r2);
+  double ang = (p1.cross(p2)).norm(); // proxies are normalized
+
+  // distance to segment
   Vector3d x = V.row(v)-V.row(anchor1);
   Vector3d s = V.row(anchor2)-V.row(anchor1); //segment
   if (s.norm()==0) return 0.;
   double t = x.dot(s)/s.norm();
-  return (x-t*s/s.norm()).norm();
+
+  return (x-t*s/s.norm()).norm()/s.norm()*ang;
 };

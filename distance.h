@@ -16,4 +16,4 @@ double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme);
 
 double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme);
 
-double distance_projection(MatrixXd V, int anchor1, int anchor2, int v);
+double distance_projection(MatrixXd V, MatrixXd Proxies, int anchor1, int anchor2, int v, int r1, int r2);
