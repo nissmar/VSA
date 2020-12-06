@@ -60,6 +60,47 @@ double get_length_edge(HalfedgeDS he, int edge, MatrixXd V){
     return (v2-v1).norm();
 };
 
+int find_englobing_region(int region, MatrixXi R, HalfedgeDS he, MatrixXi F, MatrixXd V){
+
+    int englobing_region;
+
+    MatrixXi adjacency = face_adjacency(F,V.rows());
+
+    int adj_face1;
+    int adj_face2;
+    int adj_face3;
+    for (int f=0 ; f<R.rows() ; f++){
+        if(R(f,0)== region){
+            
+            adj_face1 = adjacency(f,0);
+            adj_face2 = adjacency(f,1);
+            adj_face3 = adjacency(f,2);
+            if (R(adj_face1,0) != region){
+                return R(adj_face1,0);
+            }
+            else if (R(adj_face2,0) != region){
+                return R(adj_face2,0);
+            }
+            else if (R(adj_face3,0) != region){
+                return R(adj_face3,0);
+            }
+        }
+    }
+
+    cout<<"error : no englobing region found"<<endl;
+    return -1;
+};
+
+MatrixXi update_englobing_region(MatrixXi R_bis,int region,int englobing_region){
+    MatrixXi new_R_bis = R_bis;
+    for (int f=0 ; f<R_bis.rows() ; f++){
+        if (R_bis(f,0)==region){
+            new_R_bis(f,0) = englobing_region;
+        }
+    }
+    return new_R_bis;
+};
+
 MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, MatrixXd V, HalfedgeDS he){
 
     priority_queue<pair<double, int>> q;
@@ -75,7 +116,9 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
         color_graph(anchor_vertex,0) = i;
         edge1 = find_first(he,anchor_vertex,region,R);
         edge2 = find_second(he,anchor_vertex,region,R);
-        color_graph(he.getTarget(edge2)) = -2; //sign to recognise the direction 2
+        if (color_graph(he.getTarget(edge2),0) == -1){
+            color_graph(he.getTarget(edge2),0) = -2; //sign to recognise the direction 2
+        }
         q.push(make_pair(-get_length_edge(he,edge1,V),i+nb_anchors*edge1));
         q.push(make_pair(-get_length_edge(he,edge2,V),i+nb_anchors*edge2));
     }
@@ -146,12 +189,6 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
         }
     }
 
-    /**for (int i=0 ; i<color_graph.size() ; i++){
-        if(transition_color_graph(i,0) != -1){
-            cout<<"vertex "<<i<<" color "<<color_graph(i,0)<<endl;
-        }
-    }*/
-
     return color_graph;
 
 };
@@ -163,12 +200,11 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     MatrixXi color_graph = color_region(R,region,anchors,V,he);
     int nb_anchors = anchors[region].size();
     MatrixXi correspondence_color_anchor(nb_anchors,1);
-    int color;
     int anchor_vertex;
+
     for (int i=0 ; i<nb_anchors ; i++){
         anchor_vertex = anchors[region][i];
-        color = color_graph(anchor_vertex,0);
-        correspondence_color_anchor(color,0) = anchor_vertex;
+        correspondence_color_anchor(i,0) = anchor_vertex;
     }
 
     int color1;
@@ -177,27 +213,18 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     int vertex1;
     int vertex2;
     int vertex3;
-    
+
     for (int f=0 ; f<R.size() ; f++){
         if (R(f,0)==region){
             color1 = color_graph(F(f,0));
             color2 = color_graph(F(f,1));
             color3 = color_graph(F(f,2));
 
-            /**if (color1 == -1){
-                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,0)<<" face "<<f<<endl;
-            }
-            if (color2 == -1){
-                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,1)<<" face "<<f<<endl;
-            }
-            if (color3 == -1){
-                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,2)<<" face "<<f<<endl;
-            }*/
-
             if (color1!=color2 && color1!=color3 && color2!=color3){
                 vertex1 = correspondence_color_anchor(color1,0);
                 vertex2 = correspondence_color_anchor(color2,0);
                 vertex3 = correspondence_color_anchor(color3,0);
+
                 triangles.push_back(Vector3i(vertex1,vertex2,vertex3));
             }
         }
@@ -216,19 +243,35 @@ pair<MatrixXi,MatrixXi> triangulation (MatrixXi R, vector<vector<int>> anchors, 
     vector<int> regions;
     int nb_regions = anchors.size();
 
+    //deals with the border case : a region doesn't have any anchor vertices, then we assign all its vertices to the englobing region
+    int englobing_region;
+    MatrixXi R_bis = R;
+    MatrixXi R_bis2;
+    for (int r=0 ; r<nb_regions ; r++){
+        if (anchors[r].size() == 0){
+            englobing_region = find_englobing_region(r,R,he,F,V);
+            R_bis2 = update_englobing_region(R_bis,r,englobing_region);
+            R_bis = R_bis2;
+        }
+    }
+
     vector<Vector3i> triangulation_region;
     for (int r=0 ; r<nb_regions ; r++){
-        triangulation_region = triangulate_region(R,r,anchors,V,F,he);
-        for (int i=0 ; i<triangulation_region.size() ; i++){
-            triangulation.push_back(triangulation_region[i]);
-            regions.push_back(r);
+        //ignores all the border case regions with less than 3 anchor vertices
+        if (anchors[r].size()>=3){
+
+            triangulation_region = triangulate_region(R,r,anchors,V,F,he);
+            for (int i=0 ; i<triangulation_region.size() ; i++){
+                triangulation.push_back(triangulation_region[i]);
+                regions.push_back(r);
+            }
+
         }
     }
 
     int nb_triangles = triangulation.size();
     new_F = MatrixXi(nb_triangles,3);
     new_R = MatrixXi(nb_triangles,1);
-
     for (int i=0 ; i<nb_triangles ; i++){
         new_F.row(i) = triangulation[i];
         new_R(i,0) = regions[i];
