@@ -1,9 +1,5 @@
 #include "anchors.h"
 
-bool list_contains(list <int> my_list, int my_var) {
-    return (find(my_list.begin(), my_list.end(), my_var) != my_list.end());
-}
-
 bool vector_contains(vector<int> v, int key) {
     return count(v.begin(), v.end(), key);
 }

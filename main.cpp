@@ -11,7 +11,7 @@
 #include "proxies.h"
 #include "anchors.h"
 #include "triangulation.h"
-
+#include "renumbering.h"
 
 using namespace Eigen; // to use the classes provided by Eigen library
 using namespace std;
