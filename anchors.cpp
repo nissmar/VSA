@@ -162,13 +162,15 @@ vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixX
     seen.setZero(p);
     // return list of polygons
     vector<vector<int>> polys_anchors;
-     for (int i=0;i<n;i++) {
+    vector<int> void_vector;
+    for (int i=0;i<p;i++) polys_anchors.push_back(void_vector);
+    for (int i=0;i<n;i++) {
         if (vertex_proxies[i].size()>2) {
             for(size_t m = 0; m < vertex_proxies[i].size(); m++) {
                 r = vertex_proxies[i][m];
                 if (seen(r)==0) {
                     seen(r)=1;
-                    polys_anchors.push_back(find_anchors_on_region(he,i,r,R,anchors));
+                    polys_anchors[r] = find_anchors_on_region(he,i,r,R,anchors);
                 }
             }
         }
