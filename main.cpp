@@ -97,13 +97,17 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 
     vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies);
     pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
-    F = new_F_and_R.first;
-    R = new_F_and_R.second;
+    MatrixXi newF = new_F_and_R.first;
+    MatrixXi newR = new_F_and_R.second;
+
+    map<int,int> index = renumber(newF); //modifies F
+    MatrixXd newV = new_V(*he,V,Proxies,R,index);
 
     viewer.data().clear();
-    igl::jet(R,true,C);
-    viewer.data().set_mesh(V, F);
+    igl::jet(newR,true,C);
+    viewer.data().set_mesh(newV, newF);
     viewer.data().set_colors(C);
+
   }
   if (key == 'S' || (unsigned int)key == 83){
     while (fabs(error - precedent_error)>0.0001){
