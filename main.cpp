@@ -10,6 +10,7 @@
 #include "distance.h"
 #include "proxies.h"
 #include "anchors.h"
+#include "triangulation.h"
 
 
 using namespace Eigen; // to use the classes provided by Eigen library
@@ -93,7 +94,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     draw_anchors(viewer);
   }
   if (key == 'S' || (unsigned int)key == 83){
-    while (fabs(error - precedent_error)>0.001){
+    while (fabs(error - precedent_error)>0.0001){
 
     proxy_color(R, Proxies, V,  F, Ad, norme);
     Proxies = new_proxies(R, F, V, p, norme);
@@ -115,7 +116,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/gargoyle.off", V, F); // Load an input mesh in OFF format
+  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
   HalfedgeBuilder* builder=new HalfedgeBuilder();  
   HalfedgeDS he2 = builder->createMesh(V.rows(), F); 
   he = &he2;
@@ -127,6 +128,71 @@ int main(int argc, char *argv[])
   cout << "Computing face adjacency..." << endl;
   Ad = face_adjacency(F,V.rows());
   cout << "   ...done" << endl;
+
+
+  //petit carré plan simple (5x5) pour tester la triangulation
+  int n = 7;
+
+  MatrixXd V_bis(n*n,3);
+  for (int i=0 ; i<n ; i++){
+    for (int j=0 ; j<n ; j++){
+      V_bis.row(j+n*i) = Vector3d(i,j,0);
+    }
+  }
+
+  MatrixXi F_bis((n-1)*(n-1)*2,3);
+  for (int i=0 ; i<n-1 ; i++){
+    for (int j=0 ; j<n-1 ; j++){
+      F_bis.row(j+(n-1)*i) = Vector3i(j+n*i,j+n*(i+1),j+1+n*i);
+      F_bis.row(j+(n-1)*i+(n-1)*(n-1)) = Vector3i(j+n*(i+1),j+1+n*(i+1),j+1+n*i);
+    }
+  }
+
+  HalfedgeDS* he_bis;
+  HalfedgeBuilder* builder_bis = new HalfedgeBuilder();  
+  HalfedgeDS he2_bis = builder_bis->createMesh(V_bis.rows(), F_bis); 
+  he_bis = &he2_bis;
+
+  MatrixXi R_bis = MatrixXi::Ones((n-1)*(n-1)*2,1);
+  for (int j=0 ; j<n-1 ; j++){
+    R_bis(j,0) = 0;
+    R_bis(j+(n-1)*(n-1),0) = 0;
+    R_bis(j+(n-1)*(n-2),0) = 0;
+    R_bis(j+(n-1)*(n-2)+(n-1)*(n-1),0) = 0;
+  }
+  for (int i=0 ; i<n-1 ; i++){
+    R_bis((n-1)*i,0) = 0;
+    R_bis((n-1)*i+(n-1)*(n-1),0) = 0;
+    R_bis(n-2+(n-1)*i,0) = 0;
+    R_bis(n-2+(n-1)*i+(n-1)*(n-1),0) = 0;
+  }
+
+  vector<int> anchors_0{0,n*(n-1),n*n-1,n-1};
+  vector<int> anchors_1{n+1,(n-1)*(n-1),(n-1)*(n-1)+n-3,2*n-2};
+  vector<vector<int>> anchors{anchors_0,anchors_1};
+  
+  /**int edge = 40;
+  cout<<"edge "<<edge<<endl;
+  cout<< "first pointe vers " <<he_bis->getTarget(find_first(*he_bis,edge,1,R_bis)) <<endl;
+  cout<< "first pointe contre " <<he_bis->getTarget(he_bis->getOpposite(find_first(*he_bis,edge,1,R_bis))) <<endl;
+  cout<< "second pointe vers " <<he_bis->getTarget(find_second(*he_bis,edge,1,R_bis)) <<endl;
+  cout<< "second pointe contre " <<he_bis->getTarget(he_bis->getOpposite(find_second(*he_bis,edge,1,R_bis))) <<endl;
+  cout<<"suite first "<<he_bis->getTarget(find_next_first(*he_bis,find_first(*he_bis,edge,1,R_bis),1,R_bis))<<endl;
+  cout<<"suite second "<<he_bis->getTarget(find_next_second(*he_bis,find_second(*he_bis,edge,1,R_bis),1,R_bis))<<endl;*/
+  
+  cout<<"\ntriangulation"<<endl;
+  vector<Vector3i> triangles = triangulate_region(R_bis,1,anchors,V_bis,F_bis,*he_bis);
+  for (int i=0 ; i<triangles.size() ; i++){
+    cout<<triangles[i]<<"\n"<<endl;
+  }
+  cout<<"\n"<<endl;
+
+ /** vector<int> neighb = find_interior_neighbors(*he_bis,8,1,R_bis);
+  cout<<neighb.size()<<" neighbors"<<endl;
+  for (int i=0 ; i<neighb.size() ; i++){
+    cout<<he_bis->getTarget(neighb[i])<<endl;
+  }*/
+  
 
   //coloring 
   // Partition_faces.setZero(F.rows(),1);
