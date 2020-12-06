@@ -93,6 +93,34 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   if (key=='4') {
     draw_anchors(viewer);
   }
+  if (key=='5') {
+    draw_anchors(viewer);
+
+    cout<<"\nregion 23"<<endl;
+    for (int f=0 ; f<F.rows() ; f++){
+      if (R(f,0)==23){
+        cout<<"face "<<f<<"("<<F(f,0)<<","<<F(f,1)<<","<<F(f,2)<<")"<<endl;
+      }
+    }
+
+    vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies);
+    //for (int i=0 ; i<anchors.size() ; i++){
+      cout<<"\nregion "<<23<<" "<<anchors[23].size()<<" anchors :"<<endl;
+      for (int j=0 ; j<anchors[23].size() ; j++){
+        cout<<anchors[23][j]<<endl;
+      }
+    //}
+    //triangulate_region(R,98,anchors,V,F,*he);
+    //pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
+    //F = new_F_and_R.first;
+    //cout<<"\nF\n"<<F<<endl;
+    //R = new_F_and_R.second;
+    //cout<<"\nR\n"<<R<<endl;
+
+    igl::jet(R,true,C);
+    viewer.data().set_mesh(V, F);
+    viewer.data().set_colors(C);
+  }
   if (key == 'S' || (unsigned int)key == 83){
     while (fabs(error - precedent_error)>0.0001){
 

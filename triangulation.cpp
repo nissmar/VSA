@@ -167,7 +167,7 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     int anchor_vertex;
     for (int i=0 ; i<nb_anchors ; i++){
         anchor_vertex = anchors[region][i];
-        color = color_graph(anchor_vertex);
+        color = color_graph(anchor_vertex,0);
         correspondence_color_anchor(color,0) = anchor_vertex;
     }
 
@@ -177,12 +177,22 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     int vertex1;
     int vertex2;
     int vertex3;
+    
     for (int f=0 ; f<R.size() ; f++){
         if (R(f,0)==region){
-
             color1 = color_graph(F(f,0));
             color2 = color_graph(F(f,1));
             color3 = color_graph(F(f,2));
+
+            /**if (color1 == -1){
+                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,0)<<" face "<<f<<endl;
+            }
+            if (color2 == -1){
+                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,1)<<" face "<<f<<endl;
+            }
+            if (color3 == -1){
+                cout<<"region "<<region<<" not fully colored, missing vertex "<<F(f,2)<<" face "<<f<<endl;
+            }*/
 
             if (color1!=color2 && color1!=color3 && color2!=color3){
                 vertex1 = correspondence_color_anchor(color1,0);
@@ -194,5 +204,36 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     }
 
     return triangles;
+
+};
+
+pair<MatrixXi,MatrixXi> triangulation (MatrixXi R, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he){
+
+    MatrixXi new_F;
+    MatrixXi new_R;
+
+    vector<Vector3i> triangulation;
+    vector<int> regions;
+    int nb_regions = anchors.size();
+
+    vector<Vector3i> triangulation_region;
+    for (int r=0 ; r<nb_regions ; r++){
+        triangulation_region = triangulate_region(R,r,anchors,V,F,he);
+        for (int i=0 ; i<triangulation_region.size() ; i++){
+            triangulation.push_back(triangulation_region[i]);
+            regions.push_back(r);
+        }
+    }
+
+    int nb_triangles = triangulation.size();
+    new_F = MatrixXi(nb_triangles,3);
+    new_R = MatrixXi(nb_triangles,1);
+
+    for (int i=0 ; i<nb_triangles ; i++){
+        new_F.row(i) = triangulation[i];
+        new_R(i,0) = regions[i];
+    }
+
+    return make_pair(new_F,new_R);
 
 };

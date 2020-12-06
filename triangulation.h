@@ -20,3 +20,4 @@ double get_length_edge(HalfedgeDS he, int edge, MatrixXd V);
 
 MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, MatrixXd V, HalfedgeDS he);
 vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he);
+pair<MatrixXi,MatrixXi> triangulation (MatrixXi R, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he);
