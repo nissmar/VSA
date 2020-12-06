@@ -11,7 +11,7 @@
 #include "proxies.h"
 #include "anchors.h"
 #include "triangulation.h"
-
+#include "renumbering.h"
 
 using namespace Eigen; // to use the classes provided by Eigen library
 using namespace std;
@@ -110,15 +110,18 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
         cout<<anchors[23][j]<<endl;
       }
     //}
-    //triangulate_region(R,98,anchors,V,F,*he);
-    //pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
-    //F = new_F_and_R.first;
-    //cout<<"\nF\n"<<F<<endl;
-    //R = new_F_and_R.second;
-    //cout<<"\nR\n"<<R<<endl;
+    triangulate_region(R,98,anchors,V,F,*he);
+    pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
+    MatrixXi newF = new_F_and_R.first;
+    cout<<"\nF\n"<<F<<endl;
+    MatrixXi newR = new_F_and_R.second;
+    cout<<"\nR\n"<<R<<endl;
+    map<int,int> index = renumber(newF); //modifies F
+    MatrixXd newV = new_V(*he,V,Proxies,R,index);
 
-    igl::jet(R,true,C);
-    viewer.data().set_mesh(V, F);
+
+    igl::jet(newR,true,C);
+    viewer.data().set_mesh(newV, newF);
     viewer.data().set_colors(C);
   }
   if (key == 'S' || (unsigned int)key == 83){
