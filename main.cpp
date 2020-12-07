@@ -123,6 +123,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     viewer.data(0).set_colors(C);
 
     }
+    
   }
   return false;
 }
@@ -186,6 +187,7 @@ int main(int argc, char *argv[])
   //       Eigen::RowVector3d(1, 0, 0));
   // }
 
+  cout<<"V\n"<<V<<endl;
 
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
   viewer.data().set_mesh(V, F); // load a face-based representation of the input 3d shape
