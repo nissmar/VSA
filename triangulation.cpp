@@ -110,10 +110,19 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
     int anchor_vertex;
     int edge1;
     int edge2;
+    vector<int> edges;
+    priority_queue<pair<double,int>> q2;
     //initiates a color for each anchor vertex of the region, and pushes in the queue its neighbors which are on the boundaries
     for (int i=0 ; i<nb_anchors ; i++){
         anchor_vertex = anchors[region][i];
         color_graph(anchor_vertex,0) = i;
+
+        //push in the second queue all its interior nieghbors
+        edges = find_interior_neighbors(he,anchor_vertex,region,R);
+        for (int j=0 ; j<edges.size() ; j++){
+            q2.push(make_pair(-get_length_edge(he,edges[j],V),i+nb_anchors*edges[j]));
+        }
+
         edge1 = find_first(he,anchor_vertex,region,R);
         edge2 = find_second(he,anchor_vertex,region,R);
         if (color_graph(he.getTarget(edge2),0) == -1){
@@ -128,8 +137,6 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
     int v;
     int color;
     double length;
-    priority_queue<pair<double,int>> q2;
-    vector<int> edges;
     //empties the queue, assigns colors to boundary vertices and pushes their neighbors which are on the boundaries
     while(q.size()!=0){
         item = q.top();
