@@ -245,7 +245,7 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
 
 };
 
-pair<MatrixXi,MatrixXi> triangulation (MatrixXi R, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he){
+pair<MatrixXi,MatrixXi> triangulation (MatrixXi& R, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he){
 
     MatrixXi new_F;
     MatrixXi new_R;
@@ -256,13 +256,12 @@ pair<MatrixXi,MatrixXi> triangulation (MatrixXi R, vector<vector<int>> anchors, 
 
     //deals with the border case : a region doesn't have any anchor vertices, then we assign all its vertices to the englobing region
     int englobing_region;
-    MatrixXi R_bis = R;
-    MatrixXi R_bis2;
+    MatrixXi R_bis;
     for (int r=0 ; r<nb_regions ; r++){
         if (anchors[r].size() == 0){
             englobing_region = find_englobing_region(r,R,he,F,V);
-            R_bis2 = update_englobing_region(R_bis,r,englobing_region);
-            R_bis = R_bis2;
+            R_bis = update_englobing_region(R,r,englobing_region);
+            R = R_bis;
         }
     }
 
