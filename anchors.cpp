@@ -35,7 +35,7 @@ list <int> explore_boundary(HalfedgeDS he, int v, int r, MatrixXi R) {
 }
 
 
-int add_anchors_on_edge(HalfedgeDS he, int anchor, int r, MatrixXi R, MatrixXd V, VectorXi& anchors,  MatrixXd Proxies) {
+int add_anchors_on_edge(HalfedgeDS he, int anchor, int r, MatrixXi R, MatrixXd V, VectorXi& anchors,  MatrixXd Proxies, double treshold) {
     // modifies anchors to add anchors on edge
     int k = 0; //number of new anchors
 
@@ -70,7 +70,7 @@ int add_anchors_on_edge(HalfedgeDS he, int anchor, int r, MatrixXi R, MatrixXd V
                 max_v = new_v;
             }
         }
-        if (max_d>0.4) { // treshold
+        if (max_d>treshold) { // treshold
             anchors(max_v) = 1;
             k++;
         }
@@ -117,7 +117,7 @@ vector<int> find_vertex_proxies(HalfedgeDS he, int v, MatrixXi R) {
 }
 
 
-vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies) { 
+vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies, double treshold) { 
     int n = V.rows();
     int p = Proxies.rows()/2;
     vector<vector<int>> vertex_proxies(n); //list of proxies
@@ -146,10 +146,10 @@ vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixX
                 r = vertex_proxies[i][m];
                 if (seen(r)==0) {
                     seen(r)=1;
-                    kv = add_anchors_on_edge(he,i,r,R,V,anchors, Proxies);
+                    kv = add_anchors_on_edge(he,i,r,R,V,anchors, Proxies,treshold);
                     while (kv>0) {
                         k += kv;
-                        kv = add_anchors_on_edge(he,i,r,R,V,anchors, Proxies);
+                        kv = add_anchors_on_edge(he,i,r,R,V,anchors, Proxies,treshold);
                     }
                 }
             }

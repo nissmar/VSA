@@ -10,5 +10,5 @@
 using namespace Eigen;
 using namespace std;
 
-vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies);
+vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies, double treshold);
 vector<int> find_vertex_proxies(HalfedgeDS he, int v, MatrixXi R);
