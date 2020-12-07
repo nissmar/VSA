@@ -51,7 +51,7 @@ MatrixXd new_V(HalfedgeDS he, MatrixXd V, MatrixXd Proxies, MatrixXi R, map<int,
             for(size_t m = 0; m < proxies.size(); m++) {
                 p += projection(V.row(i),Proxies,proxies[m]);
             }
-            newV.row(index[i]) = p/proxies.size();
+            newV.row(index[i]) = V.row(i);
         }
     }
     return newV;

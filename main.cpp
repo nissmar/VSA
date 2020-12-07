@@ -29,6 +29,7 @@ int iterations;
 vector<pair<int,double>> global_error_points; //contains the global_distortion_error according to the number of iterations
 double error;
 double precedent_error;
+double treshold;
 
 void debug_regions_vides(MatrixXi R, int p){
   cout<<"Regions vides"<<endl;
@@ -59,7 +60,7 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
 }
 
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
-  vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies);
+  vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
   viewer.append_mesh();
   for(size_t i = 0; i < anchors.size(); i++) {
     for(size_t j = 0; j < anchors[i].size(); j++) {
@@ -95,7 +96,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='5') {
 
-    vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies);
+    vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
     pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
     MatrixXi newF = new_F_and_R.first;
     MatrixXi newR = new_F_and_R.second;
@@ -103,11 +104,21 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     map<int,int> index = renumber(newF); //modifies F
     MatrixXd newV = new_V(*he,V,Proxies,R,index);
 
+    V = newV;
+    F = newF;
+    R = newR;
     viewer.data().clear();
-    igl::jet(newR,true,C);
-    viewer.data().set_mesh(newV, newF);
+    igl::jet(R,true,C);
+    viewer.data().set_mesh(V, F);
     viewer.data().set_colors(C);
+    cout <<"faces : "<<F.rows() << endl;
 
+  }
+  if (key=='6') {
+    MatrixXd nR;
+    nR.setZero(R.rows(),1);
+    igl::jet(nR,true,C);
+    viewer.data().set_colors(C);
   }
   if (key == 'S' || (unsigned int)key == 83){
     while (fabs(error - precedent_error)>0.0001){
@@ -117,6 +128,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     iterations += 1;
     precedent_error = error;
     error = global_distortion_error(R,Proxies,V,F,norme);
+    cout << error << endl;
     global_error_points.push_back(make_pair(iterations,error));
 
     igl::jet(R,true,C);
@@ -133,7 +145,22 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
-  igl::readOFF("../data/bunny.off", V, F); // Load an input mesh in OFF format
+  p = 180;
+  norme = 1;
+  treshold = 0.4;
+  string file = "../data/gargoyle.off";
+  if (argc>=2) {
+    string w = argv[1];
+    file = "../data/" + w + ".off";
+  }
+  if (argc>=3) {
+    p = atoi(argv[2]);
+  }
+  if (argc>=4) {
+    treshold = atof(argv[3]);
+  }
+
+  igl::readOFF(file, V, F); // Load an input mesh in OFF format
   HalfedgeBuilder* builder=new HalfedgeBuilder();  
   HalfedgeDS he2 = builder->createMesh(V.rows(), F); 
   he = &he2;
@@ -165,8 +192,6 @@ int main(int argc, char *argv[])
   // igl::jet(Cf,true,C);
 
   // coloring proxies
-  p = 100;
-  norme = 1;
   initial_partition(p, R, V, F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
   iterations = 1;
