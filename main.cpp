@@ -97,6 +97,15 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   if (key=='5') {
 
     vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
+    MatrixXi Cr = color_region(R,6,anchors,V,*he);
+    cout << Cr<< endl;
+
+    viewer.append_mesh();
+    for(int j = 0; j < Cr.rows(); j++) {
+      int i = Cr(j,0);
+      if (i>-1) viewer.data(0).add_points(V.row(j), Eigen::RowVector3d(i%3/2.0,i/9.0, i%2));
+    }
+    return true;
     pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
     MatrixXi newF = new_F_and_R.first;
     MatrixXi newR = new_F_and_R.second;
