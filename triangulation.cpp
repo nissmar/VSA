@@ -128,6 +128,8 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
     int v;
     int color;
     double length;
+    priority_queue<pair<double,int>> q2;
+    vector<int> edges;
     //empties the queue, assigns colors to boundary vertices and pushes their neighbors which are on the boundaries
     while(q.size()!=0){
         item = q.top();
@@ -141,52 +143,44 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
             color_graph(v,0) = color;
             edge = find_next_first(he,edge,region,R);
             q.push(make_pair(length-get_length_edge(he,edge,V),color+nb_anchors*edge));
+
+            //push in the second queue all its interior nieghbors
+            edges = find_interior_neighbors(he,v,region,R);
+            for (int j=0 ; j<edges.size() ; j++){
+                q2.push(make_pair(-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
+            }
         }
         
         else if (color_graph(v,0)==-2){
             color_graph(v,0) = color;
             edge = find_next_second(he,edge,region,R);
             q.push(make_pair(length-get_length_edge(he,edge,V),color+nb_anchors*edge));
-        }
-        
-    }
 
-    MatrixXi transition_color_graph = -MatrixXi::Ones(V.rows(),1); //for this phase, we need to go through boundary vertices so we ignore their color for now
-    vector<int> edges;
+            //push in the second queue all its interior nieghbors
+            edges = find_interior_neighbors(he,v,region,R);
+            for (int j=0 ; j<edges.size() ; j++){
+                q2.push(make_pair(-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
+            }
+        }
+    }
+    
     //does the same thing for all the interior vertices
-    for (int i=0 ; i<nb_anchors ; i++){
-        anchor_vertex = anchors[region][i];
-        transition_color_graph(anchor_vertex,0) = i;
-        edges = find_interior_neighbors(he,anchor_vertex,region,R);
-        for (int j=0 ; j<edges.size() ; j++){
-            q.push(make_pair(-get_length_edge(he,edges[j],V),i+nb_anchors*edges[j]));
-        }
-    }
-
     //empties the queue, assigns colors to interior vertices and pushes their neighbors which are inside the region
-    while(q.size()!=0){
-        item = q.top();
-        q.pop();
+    while(q2.size()!=0){
+        item = q2.top();
+        q2.pop();
         edge = item.second/nb_anchors;
         v = he.getTarget(edge);
         color = item.second%nb_anchors;
         length = item.first;
 
-        if (transition_color_graph(v,0)==-1){
-            transition_color_graph(v,0) = color;
+        if (color_graph(v,0)==-1){
+            color_graph(v,0) = color;
             edges = find_interior_neighbors(he,he.getTarget(edge),region,R);
             for (int j=0 ; j<edges.size() ; j++){
-                q.push(make_pair(length-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
+                q2.push(make_pair(length-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
             }
-        }
-        
-    }
-
-    //writing the interior vertices colors in the final graph
-    for (int i=0 ; i<transition_color_graph.size() ; i++){
-        if( (transition_color_graph(i,0) != -1) && (color_graph(i,0) == -1) ){
-            color_graph(i,0) = transition_color_graph(i,0);
-        }
+        } 
     }
 
     return color_graph;
@@ -196,15 +190,25 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
 vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he){
 
     vector<Vector3i> triangles;
-
+    cout<<"\n\nregion "<<region<<"\n"<<endl;
+    cout<<"colors :\n"<<endl;
     MatrixXi color_graph = color_region(R,region,anchors,V,he);
+    for (int i=0 ; i<color_graph.size() ; i++){
+        if (color_graph(i,0) != -1){
+            cout<<"vertex "<<i<<" color "<<color_graph(i,0)<<endl;
+        }
+    }
     int nb_anchors = anchors[region].size();
     MatrixXi correspondence_color_anchor(nb_anchors,1);
-    int anchor_vertex;
 
+    int anchor_vertex;
+    int color;
+    cout<<"\nanchor vertices : "<<endl;
     for (int i=0 ; i<nb_anchors ; i++){
         anchor_vertex = anchors[region][i];
-        correspondence_color_anchor(i,0) = anchor_vertex;
+        cout<<anchor_vertex<<endl;
+        color = color_graph(anchor_vertex,0);
+        correspondence_color_anchor(color,0) = anchor_vertex;
     }
 
     int color1;
@@ -213,18 +217,18 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     int vertex1;
     int vertex2;
     int vertex3;
-
+    cout<<"\ntriangles :"<<endl;
     for (int f=0 ; f<R.size() ; f++){
         if (R(f,0)==region){
-            color1 = color_graph(F(f,0));
-            color2 = color_graph(F(f,1));
-            color3 = color_graph(F(f,2));
+            color1 = color_graph(F(f,0),0);
+            color2 = color_graph(F(f,1),0);
+            color3 = color_graph(F(f,2),0);
 
             if (color1!=color2 && color1!=color3 && color2!=color3){
                 vertex1 = correspondence_color_anchor(color1,0);
                 vertex2 = correspondence_color_anchor(color2,0);
                 vertex3 = correspondence_color_anchor(color3,0);
-
+                cout<<vertex1<<" "<<vertex2<<" "<<vertex3<<endl;
                 triangles.push_back(Vector3i(vertex1,vertex2,vertex3));
             }
         }
