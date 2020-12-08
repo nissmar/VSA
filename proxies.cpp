@@ -82,11 +82,11 @@ Vector3d new_Ni_L_2 (MatrixXi R, int i, MatrixXi F, MatrixXd V){
       gT = g(v1,v2,v3);
       MT = M(v1,v2,v3);
       s = triangle_area(v1,v2,v3);
-      w += s;
-
+      
       Ci += (2./72.)*s*MT*A*MT.transpose() + s*gT*gT.transpose();
       
     }
+    w += s;
   }
   
   Ci = Ci - w*Xi*Xi.transpose();
