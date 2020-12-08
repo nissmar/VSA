@@ -36,11 +36,10 @@ MatrixXi face_adjacency(MatrixXi F, int n) { // n: number of vertices
   return Ad;
 }
 
-MatrixXi uniform_proxies(int k, int n) {
-  MatrixXi Proxies;
-  Proxies.setZero(k,1);
+vector<int> uniform_proxies(int k, int n) {
+  vector<int> Proxies;
   for (int i=0;i<k;i++) {
-    Proxies(i) = (i*n)/k;
+    Proxies.push_back((i*n)/k);
   }
   return Proxies;
 }
@@ -86,25 +85,36 @@ void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V, int norme) {
 }
 
 
-void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+  // updates R and find for each region the furthest triangle and its region
   int m=F.rows();
   R = -MatrixXi::Ones(m, 1);
 
   priority_queue<pair<double, int>> q; // distance, face, proxy
+  
 
   // initialize proxies
-  MatrixXi Proxies = uniform_proxies(p, V.rows());
+  int p=Triangles.size();
   Vector3d Proxies_center[p];
   Vector3d Proxies_normal[p];
 
+  // furthest 
+  VectorXi furthest_triangle(p);
+  VectorXd furthest_distance(p);
+  furthest_distance.setZero(p);
   for (int i=0;i<p; i++) {
-    Proxies_center[i] = triangle_center(F.row(Proxies(i)), V);
-    Proxies_normal[i] = triangle_normal(F.row(Proxies(i)), V);
-    R(Proxies(i)) = i;
+    Proxies_center[i] = triangle_center(F.row(Triangles[i]), V);
+    Proxies_normal[i] = triangle_normal(F.row(Triangles[i]), V);
+    R(Triangles[i]) = i;
     for (int k=0;k<3;k++) {
-        int tri = Ad(Proxies(i),k);
+        int tri = Ad(Triangles[i],k);
         double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
         q.push(make_pair(1.0-d, tri+m*(i)));
+        if (d>furthest_distance(i) && !vector_contains(Triangles,tri)) {
+          furthest_distance(i)=d;
+          furthest_triangle(i)=tri;
+        }
+
     }
   }
 
@@ -126,10 +136,40 @@ void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, 
         int tri = Ad(face,k);
         double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
         q.push(make_pair(1.0-d, tri+m*prox));
+        if (d>furthest_distance(prox) && !vector_contains(Triangles,tri)) {
+          furthest_distance(prox)=d;
+          furthest_triangle(prox)=tri;
+        }
       }
     }
   }
-  
+
+  double max=furthest_distance(0);
+  int maxtri=furthest_triangle(0);
+  for (int i=1;i<p;i++) {
+    if (max<furthest_distance(i)) {
+      maxtri=furthest_triangle(i);
+      max=furthest_distance(i);
+    } 
+  }
+  return maxtri;
+}
+
+void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+  vector<int> Triangles = uniform_proxies(p,F.rows());
+  find_triangles_region(Triangles,R,V,F,Ad,norme);
+}
+
+
+void initial_partition2(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+  //using furthest triangle
+  int tri = rand() % F.rows();
+  vector<int> Triangles;
+  for (int i=0;i<p;i++) {
+      cout << i<<endl;
+      Triangles.push_back(tri);
+      tri = find_triangles_region(Triangles,R,V,F,Ad,norme);
+  }
 }
 
 
@@ -163,7 +203,6 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   Vector3d Proxies_center[p];
   Vector3d Proxies_normal[p];
   VectorXi triangles = find_best_triangles(R,Proxies,V,F,norme);
-  cout << "   triangles found" <<endl;
 
   // reset R
   R = -MatrixXi::Ones(m, 1);
@@ -181,7 +220,6 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   pair<double, int> item;
   int face;
   int prox;
-  cout << "   starting loop" <<endl;
 
   while (q.size()!=0) {
     item = q.top();

@@ -61,7 +61,6 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
 
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
   vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
-  viewer.append_mesh();
   for(size_t i = 0; i < anchors.size(); i++) {
     for(size_t j = 0; j < anchors[i].size(); j++) {
       viewer.data(0).add_points(V.row(anchors[i][j]), Eigen::RowVector3d(i%3, (i+1)%3,  (i+2)%3));
@@ -111,13 +110,9 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 
     map<int,int> index = renumber(newF); //modifies F
     MatrixXd newV = new_V(*he,V,Proxies,R,index);
-
-    V = newV;
-    F = newF;
-    R = newR;
     viewer.data().clear();
-    igl::jet(R,true,C);
-    viewer.data().set_mesh(V, F);
+    igl::jet(newR,true,C);
+    viewer.data().set_mesh(newV, newF);
     viewer.data().set_colors(C);
     cout <<"faces : "<<F.rows() << endl;
 
@@ -200,7 +195,13 @@ int main(int argc, char *argv[])
   // igl::jet(Cf,true,C);
 
   // coloring proxies
-  initial_partition(p, R, V, F, Ad, norme);
+  if (argc>=5) {
+    initial_partition(p, R, V, F, Ad, norme);
+    cout << "uniform init" <<endl;
+  }
+  else {
+    initial_partition2(p, R, V, F, Ad, norme);
+  }
   Proxies = new_proxies(R, F, V, p, norme);
   iterations = 1;
   error = global_distortion_error(R,Proxies,V,F,norme);
