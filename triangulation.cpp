@@ -125,9 +125,6 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
 
         edge1 = find_first(he,anchor_vertex,region,R);
         edge2 = find_second(he,anchor_vertex,region,R);
-        if (color_graph(he.getTarget(edge2),0) == -1){
-            color_graph(he.getTarget(edge2),0) = -2; //sign to recognise the direction 2
-        }
         q.push(make_pair(-get_length_edge(he,edge1,V),i+nb_anchors*edge1));
         q.push(make_pair(-get_length_edge(he,edge2,V),i+nb_anchors*edge2));
     }
@@ -148,25 +145,15 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
 
         if (color_graph(v,0)==-1){
             color_graph(v,0) = color;
-            edge = find_next_first(he,edge,region,R);
-            q.push(make_pair(length-get_length_edge(he,edge,V),color+nb_anchors*edge));
+            edge1 = find_next_first(he,edge,region,R);
+            edge2 = find_next_second(he,edge,region,R);
+            q.push(make_pair(length-get_length_edge(he,edge1,V),color+nb_anchors*edge1));
+            q.push(make_pair(length-get_length_edge(he,edge2,V),color+nb_anchors*edge2));
 
-            //push in the second queue all its interior nieghbors
+            //push in the second queue all its interior neighbors
             edges = find_interior_neighbors(he,v,region,R);
             for (int j=0 ; j<edges.size() ; j++){
-                q2.push(make_pair(-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
-            }
-        }
-        
-        else if (color_graph(v,0)==-2){
-            color_graph(v,0) = color;
-            edge = find_next_second(he,edge,region,R);
-            q.push(make_pair(length-get_length_edge(he,edge,V),color+nb_anchors*edge));
-
-            //push in the second queue all its interior nieghbors
-            edges = find_interior_neighbors(he,v,region,R);
-            for (int j=0 ; j<edges.size() ; j++){
-                q2.push(make_pair(-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
+                q2.push(make_pair(length-get_length_edge(he,edges[j],V),color+nb_anchors*edges[j]));
             }
         }
     }
