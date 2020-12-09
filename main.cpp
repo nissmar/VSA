@@ -68,6 +68,27 @@ void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
   }
     
 }
+void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k) {
+  Vector3d m1(-n(1), n(0),0);
+  m1.normalize();
+  Vector3d m2 = n.cross(m1);
+  newV.row(3*k) = x;
+  newV.row(3*k+1) = x+m1/100.0;
+  newV.row(3*k+2) = x+m2/100.0;
+}
+void draw_prox(igl::opengl::glfw::Viewer &viewer) {
+  MatrixXd newV(3*p,3);
+  MatrixXi newF(p,3);
+
+  vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
+  for(int i = 0; i < p; i++) {
+    triangle_proxy(Proxies.row(i),Proxies.row(i+p), newV, i);
+    newF.row(i) << 3*i, 3*i+1, 3*i+2;
+  }
+  viewer.data().clear();
+  viewer.data().set_mesh(newV, newF);
+
+}
 
 bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier) {
   cout << "pressed Key: " << key << " " << (unsigned int)key << endl;
@@ -80,10 +101,9 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='3') {
     // debug_regions_vides(R,p);
-    proxy_color(R, Proxies, V,  F, Ad, norme);
+    double error = proxy_color(R, Proxies, V,  F, Ad, norme);
     Proxies = new_proxies(R, F, V, p, norme);
     iterations += 1;
-    double error = global_distortion_error(R,Proxies,V,F,norme);
     cout<<"Global Error : "<<error<<endl;
     global_error_points.push_back(make_pair(iterations,error));
 
@@ -123,21 +143,31 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     igl::jet(nR,true,C);
     viewer.data().set_colors(C);
   }
+  if (key=='7') {
+    draw_prox(viewer);
+  }
   if (key == 'S' || (unsigned int)key == 83){
+    vector<double> errors;
     while (fabs(error - precedent_error)>0.0001){
+      precedent_error = error;
+      error = proxy_color(R, Proxies, V,  F, Ad, norme);
+      Proxies = new_proxies(R, F, V, p, norme);
+      iterations += 1;
+      cout << error << endl;
 
-    proxy_color(R, Proxies, V,  F, Ad, norme);
-    Proxies = new_proxies(R, F, V, p, norme);
-    iterations += 1;
-    precedent_error = error;
-    error = global_distortion_error(R,Proxies,V,F,norme);
-    cout << error << endl;
-    global_error_points.push_back(make_pair(iterations,error));
+      if (vector_contains(errors,error)){
+        cout<<"cycle !"<<endl;
+        break;
+      }
+     
+      // error = global_distortion_error(R,Proxies,V,F,norme);
+      global_error_points.push_back(make_pair(iterations,error));
+      errors.push_back(error);
 
-    igl::jet(R,true,C);
-    viewer.data(0).set_colors(C);
-
+      igl::jet(R,true,C);
+      viewer.data(0).set_colors(C);
     }
+    cout << "    Done" <<endl;
     
   }
   return false;
@@ -190,12 +220,13 @@ int main(int argc, char *argv[])
 
   // coloring distance 
   // MatrixXd Cf;
-  // distance_color(Cf,F,V);
+  // distance_color(Cf,F,V,0);
   // MatrixXd C;
   // igl::jet(Cf,true,C);
 
   // coloring proxies
   if (argc>=5) {
+    norme = 0;
     initial_partition(p, R, V, F, Ad, norme);
     cout << "uniform init" <<endl;
   }

@@ -109,7 +109,7 @@ int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, Matrix
     for (int k=0;k<3;k++) {
         int tri = Ad(Triangles[i],k);
         double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
-        q.push(make_pair(1.0-d, tri+m*(i)));
+        q.push(make_pair(-d, tri+m*(i)));
         if (d>furthest_distance(i) && !vector_contains(Triangles,tri)) {
           furthest_distance(i)=d;
           furthest_triangle(i)=tri;
@@ -135,7 +135,7 @@ int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, Matrix
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
         double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
-        q.push(make_pair(1.0-d, tri+m*prox));
+        q.push(make_pair(-d, tri+m*prox));
         if (d>furthest_distance(prox) && !vector_contains(Triangles,tri)) {
           furthest_distance(prox)=d;
           furthest_triangle(prox)=tri;
@@ -194,8 +194,9 @@ VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi 
 }
 
 
-void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
   int m=F.rows();
+  double error=0;
   priority_queue<pair<double, int>> q; // distance, proxy
 
   // initialize proxies
@@ -210,10 +211,11 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
     Proxies_center[i] = Proxies.row(i);
     Proxies_normal[i] = Proxies.row(i+p);
     R(triangles(i)) = i;
+    error += distance(F.row(triangles(i)), Proxies_center[i], Proxies_normal[i], V, norme);
     for (int k=0;k<3;k++) {
         int tri = Ad(triangles(i),k);
         double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
-        q.push(make_pair(1.0-d, tri+m*(i)));
+        q.push(make_pair(-d, tri+m*(i)));
     }
   }
 
@@ -224,6 +226,7 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
   while (q.size()!=0) {
     item = q.top();
     q.pop();
+    error += - item.first;
     prox = item.second/m;
     face = item.second%m;
     
@@ -233,9 +236,10 @@ void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
         double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
-        q.push(make_pair(1.0-d, tri+m*prox));
+        q.push(make_pair(-d, tri+m*prox));
       }
     }
   }
+  return error;
 }
 

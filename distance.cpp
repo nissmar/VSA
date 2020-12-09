@@ -52,6 +52,24 @@ double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
   return (1./6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
 
 };
+double distance_L_2_s(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
+
+  Vector3d v1 = V.row(T(0));
+  Vector3d v2 = V.row(T(1));
+  Vector3d v3 = V.row(T(2));
+
+  double l1 = (v2-v1).norm();
+  double l2 = (v3-v2).norm();
+  double l3 = (v1-v3).norm();
+  double p = (l1+l2+l3)/2.;
+  double area = p*(p-l1)*(p-l2)*(p-l3);  
+  double d1 = orthogonal_distance(X,N,v1);
+  double d2 = orthogonal_distance(X,N,v2);
+  double d3 = orthogonal_distance(X,N,v3);
+  double x = (1./6.)*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
+  return area*x*x;
+
+};
 
 double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V){
 
@@ -65,15 +83,35 @@ double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V){
 
 };
 
+double distance_L_2_1_s(Vector3i T, Vector3d N, MatrixXd V){
+  Vector3d v1 = V.row(T(0));
+  Vector3d v2 = V.row(T(1));
+  Vector3d v3 = V.row(T(2));
+  double l1 = (v2-v1).norm();
+  double l2 = (v3-v2).norm();
+  double l3 = (v1-v3).norm();
+  double p = (l1+l2+l3)/2.;
+  double area = p*(p-l1)*(p-l2)*(p-l3);
+  double x = ((v2-v1).cross(v3-v1).normalized()-N).norm();
+  return area*x*x*x*x;
+};
+
 double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
   if (norme == 0){
     return distance_L_2(T,X,N,V);
   }
-  else if (norme == 1){
+  else {
     return distance_L_2_1(T,N,V);
   }
+};
+
+
+double distance_squared(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
+  if (norme == 0){
+    return distance_L_2_s(T,X,N,V);
+  }
   else {
-    cout<<"wrong norme parameter"<<endl;
+    return distance_L_2_1_s(T,N,V);
   }
 };
 

@@ -4,6 +4,9 @@ bool vector_contains(vector<int> v, int key) {
     return count(v.begin(), v.end(), key);
 }
 
+bool vector_contains(vector<double> v, double key) {
+    return count(v.begin(), v.end(), key);
+}
 
 
 int find_first_edge(HalfedgeDS he, int v, int r, MatrixXi R) {

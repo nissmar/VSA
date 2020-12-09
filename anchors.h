@@ -11,5 +11,7 @@ using namespace Eigen;
 using namespace std;
 
 bool vector_contains(vector<int> v, int key);
+bool vector_contains(vector<double> v, double key);
+
 vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixXd Proxies, double treshold);
 vector<int> find_vertex_proxies(HalfedgeDS he, int v, MatrixXi R);
