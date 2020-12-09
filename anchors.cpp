@@ -167,9 +167,13 @@ vector<vector<int>> anchor_points(HalfedgeDS he, MatrixXi R, MatrixXd V, MatrixX
         if (vertex_proxies[i].size()>2) {
             for(size_t m = 0; m < vertex_proxies[i].size(); m++) {
                 r = vertex_proxies[i][m];
-                if (seen(r)==0) {
-                    seen(r)=1;
-                    polys_anchors[r] = find_anchors_on_region(he,i,r,R,anchors);
+                // if (seen(r)==0) {
+                //     seen(r)=1;
+                //     polys_anchors[r] = find_anchors_on_region(he,i,r,R,anchors);
+                // }
+                if (!vector_contains(polys_anchors[r],i)) {
+                    vector<int> new_anchors = find_anchors_on_region(he,i,r,R,anchors);
+                    polys_anchors[r].insert( polys_anchors[r].end(), new_anchors.begin(), new_anchors.end() );
                 }
             }
         }

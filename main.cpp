@@ -89,7 +89,16 @@ void draw_prox(igl::opengl::glfw::Viewer &viewer) {
   viewer.data().set_mesh(newV, newF);
 
 }
+void one_iter(igl::opengl::glfw::Viewer &viewer) {
+  double error = proxy_color(R, Proxies, V,  F, Ad, norme);
+  Proxies = new_proxies(R, F, V, p, norme);
+  iterations += 1;
+  cout<<"Global Error : "<<error<<endl;
+  global_error_points.push_back(make_pair(iterations,error));
 
+  igl::jet(R,true,C);
+  viewer.data(0).set_colors(C);
+}
 bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier) {
   cout << "pressed Key: " << key << " " << (unsigned int)key << endl;
   if (key=='1') {
@@ -101,14 +110,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='3') {
     // debug_regions_vides(R,p);
-    double error = proxy_color(R, Proxies, V,  F, Ad, norme);
-    Proxies = new_proxies(R, F, V, p, norme);
-    iterations += 1;
-    cout<<"Global Error : "<<error<<endl;
-    global_error_points.push_back(make_pair(iterations,error));
-
-    igl::jet(R,true,C);
-    viewer.data(0).set_colors(C);
+    one_iter(viewer);
   }
   if (key=='4') {
     draw_anchors(viewer);
@@ -134,7 +136,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     igl::jet(newR,true,C);
     viewer.data().set_mesh(newV, newF);
     viewer.data().set_colors(C);
-    cout <<"faces : "<<F.rows() << endl;
+    cout <<"faces : "<<newF.rows() << endl;
 
   }
   if (key=='6') {
@@ -145,6 +147,14 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   }
   if (key=='7') {
     draw_prox(viewer);
+  }
+  if (key=='8') {
+    for (int i=0;i<10;i++) one_iter(viewer);
+    cout << "    Done" <<endl;
+  }
+  if (key=='9') {
+    for (int i=0;i<100;i++) one_iter(viewer);
+    cout << "    Done" <<endl;
   }
   if (key == 'S' || (unsigned int)key == 83){
     vector<double> errors;

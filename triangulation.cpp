@@ -184,12 +184,12 @@ MatrixXi color_region (MatrixXi R, int region, vector<vector<int>> anchors, Matr
 vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>> anchors, MatrixXd V, MatrixXi F, HalfedgeDS he){
 
     vector<Vector3i> triangles;
-    cout<<"\n\nregion "<<region<<"\n"<<endl;
-    cout<<"colors :\n"<<endl;
+    // cout<<"\n\nregion "<<region<<"\n"<<endl;
+    // cout<<"colors :\n"<<endl;
     MatrixXi color_graph = color_region(R,region,anchors,V,he);
     for (int i=0 ; i<color_graph.size() ; i++){
         if (color_graph(i,0) != -1){
-            cout<<"vertex "<<i<<" color "<<color_graph(i,0)<<endl;
+            // cout<<"vertex "<<i<<" color "<<color_graph(i,0)<<endl;
         }
     }
     int nb_anchors = anchors[region].size();
@@ -197,10 +197,10 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
 
     int anchor_vertex;
     int color;
-    cout<<"\nanchor vertices : "<<endl;
+    // cout<<"\nanchor vertices : "<<endl;
     for (int i=0 ; i<nb_anchors ; i++){
         anchor_vertex = anchors[region][i];
-        cout<<anchor_vertex<<endl;
+        // cout<<anchor_vertex<<endl;
         color = color_graph(anchor_vertex,0);
         correspondence_color_anchor(color,0) = anchor_vertex;
     }
@@ -211,7 +211,7 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
     int vertex1;
     int vertex2;
     int vertex3;
-    cout<<"\ntriangles :"<<endl;
+    // cout<<"\ntriangles :"<<endl;
     for (int f=0 ; f<R.size() ; f++){
         if (R(f,0)==region){
             color1 = color_graph(F(f,0),0);
@@ -222,7 +222,7 @@ vector<Vector3i> triangulate_region (MatrixXi R, int region, vector<vector<int>>
                 vertex1 = correspondence_color_anchor(color1,0);
                 vertex2 = correspondence_color_anchor(color2,0);
                 vertex3 = correspondence_color_anchor(color3,0);
-                cout<<vertex1<<" "<<vertex2<<" "<<vertex3<<endl;
+                // cout<<vertex1<<" "<<vertex2<<" "<<vertex3<<endl;
                 triangles.push_back(Vector3i(vertex1,vertex2,vertex3));
             }
         }
