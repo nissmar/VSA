@@ -4,17 +4,16 @@ using namespace Eigen;
 using namespace std;
 
 //******************Distortion error******************
-double triangle_area(Vector3d v1,Vector3d v2,Vector3d v3);
 double orthogonal_distance(Vector3d X, Vector3d N, Vector3d M);
-Vector3d triangle_normal(Vector3d v1,Vector3d v2,Vector3d v3);
-Vector3d triangle_normal(Vector3i T, MatrixXd V);
-Vector3d triangle_center(Vector3i T, MatrixXd V);
+Vector3d get_center(int i);
+Vector3d get_normal(int i);
+double get_area(int i);
 
-double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V);
-double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V);
-double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme);
-double distance_squared(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme);
+
+double distance(int i, Vector3d X, Vector3d N, MatrixXd V, int norme);
 
 double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi F, int norme);
 
 double distance_projection(MatrixXd V, MatrixXd Proxies, int anchor1, int anchor2, int v, int r1, int r2);
+
+void initialize_normals_areas(MatrixXi F, MatrixXd V);

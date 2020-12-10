@@ -140,8 +140,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 
   }
   if (key=='6') {
-    MatrixXd nR;
-    nR.setZero(R.rows(),1);
+    MatrixXd nR = MatrixXd::Ones(F.rows(),1);
     igl::jet(nR,true,C);
     viewer.data().set_colors(C);
   }
@@ -214,6 +213,7 @@ int main(int argc, char *argv[])
   // Face adjacency
   cout << "Computing face adjacency..." << endl;
   Ad = face_adjacency(F,V.rows());
+  initialize_normals_areas(F,V);
   cout << "   ...done" << endl;
 
   //coloring 

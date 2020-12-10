@@ -2,6 +2,23 @@
 
 //******************Distortion error******************
 
+VectorXd Face_area;
+MatrixXd Face_normal;
+MatrixXd Face_center;
+MatrixXi Face;
+
+
+Vector3d get_center(int i) {
+  return Face_center.row(i);
+}
+
+Vector3d get_normal(int i) {
+  return Face_normal.row(i);
+}
+
+double get_area(int i) {
+  return Face_area(i);
+}
 double triangle_area(Vector3d v1,Vector3d v2,Vector3d v3){
 
   double l1 = (v2-v1).norm();
@@ -38,11 +55,11 @@ Vector3d triangle_center(Vector3i T, MatrixXd V){
   return (V.row(T(0)) + V.row(T(1)) + V.row(T(2))) / 3.0;
 }
 
-double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
+double distance_L_2(int i, Vector3d X, Vector3d N, MatrixXd V){
 
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
+  Vector3d v1 = V.row(Face(i,0));
+  Vector3d v2 = V.row(Face(i,1));
+  Vector3d v3 = V.row(Face(i,2));
 
   double area = triangle_area(v1,v2,v3);
   double d1 = orthogonal_distance(X,N,v1);
@@ -52,66 +69,19 @@ double distance_L_2(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
   return (1./6.)*area*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
 
 };
-double distance_L_2_s(Vector3i T, Vector3d X, Vector3d N, MatrixXd V){
 
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
-
-  double l1 = (v2-v1).norm();
-  double l2 = (v3-v2).norm();
-  double l3 = (v1-v3).norm();
-  double p = (l1+l2+l3)/2.;
-  double area = p*(p-l1)*(p-l2)*(p-l3);  
-  double d1 = orthogonal_distance(X,N,v1);
-  double d2 = orthogonal_distance(X,N,v2);
-  double d3 = orthogonal_distance(X,N,v3);
-  double x = (1./6.)*(d1*d1 + d2*d2 + d3*d3 + d1*d2 + d1*d3 + d2*d3);
-  return area*x*x;
-
+double distance_L_2_1(int i, Vector3d N) {
+  Vector3d nf = Face_normal.row(i);
+  double n = (nf-N).norm();
+  return Face_area(i)*n*n;
 };
 
-double distance_L_2_1(Vector3i T, Vector3d N, MatrixXd V){
-
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
-  double area = triangle_area(v1,v2,v3);
-  Vector3d n = triangle_normal(v1,v2,v3);
-
-  return area*pow((n-N).norm(),2);
-
-};
-
-double distance_L_2_1_s(Vector3i T, Vector3d N, MatrixXd V){
-  Vector3d v1 = V.row(T(0));
-  Vector3d v2 = V.row(T(1));
-  Vector3d v3 = V.row(T(2));
-  double l1 = (v2-v1).norm();
-  double l2 = (v3-v2).norm();
-  double l3 = (v1-v3).norm();
-  double p = (l1+l2+l3)/2.;
-  double area = p*(p-l1)*(p-l2)*(p-l3);
-  double x = ((v2-v1).cross(v3-v1).normalized()-N).norm();
-  return area*x*x*x*x;
-};
-
-double distance(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
+double distance(int i, Vector3d X, Vector3d N, MatrixXd V, int norme){
   if (norme == 0){
-    return distance_L_2(T,X,N,V);
+    return distance_L_2(i,X,N,V);
   }
   else {
-    return distance_L_2_1(T,N,V);
-  }
-};
-
-
-double distance_squared(Vector3i T, Vector3d X, Vector3d N, MatrixXd V, int norme){
-  if (norme == 0){
-    return distance_L_2_s(T,X,N,V);
-  }
-  else {
-    return distance_L_2_1_s(T,N,V);
+    return distance_L_2_1(i,N);
   }
 };
 
@@ -134,8 +104,7 @@ double global_distortion_error(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixX
     num_proxy = R(i,0);
     X = Proxies.row(num_proxy);
     N = Proxies.row(num_proxy+p);
-    T = F.row(i);
-    e = distance(T,X,N,V,norme);
+    e = distance(i,X,N,V,norme);
     E += e;
 
   }
@@ -161,3 +130,20 @@ double distance_projection(MatrixXd V, MatrixXd Proxies, int anchor1, int anchor
 
   return (x-t*s/s.norm()).norm()/s.norm()*ang;
 };
+
+
+void initialize_normals_areas(MatrixXi F, MatrixXd V) {
+  int f = F.rows();
+  Face = F;
+  Face_center.setZero(f,3);
+  Face_area.setZero(f);
+  Face_normal.setZero(f,3);
+  for (int i=0 ; i<f ; i++){
+    Vector3d v1 = V.row(F(i,0));
+    Vector3d v2 = V.row(F(i,1));
+    Vector3d v3 = V.row(F(i,2));
+    Face_area(i) = triangle_area(v1,v2,v3);
+    Face_normal.row(i) = triangle_normal(v1,v2,v3);
+    Face_center.row(i) = triangle_center(F.row(i),V);
+  }
+}

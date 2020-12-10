@@ -77,10 +77,10 @@ void fcolor(MatrixXd &Cf, MatrixXi Ad) {
 void distance_color(MatrixXd &Cf, MatrixXi F, MatrixXd V, int norme) {
   // closeness to the original face with the l2 or L21 distance
   Cf.setZero(F.rows(),1);
-  Vector3d c = triangle_center(F.row(0), V);
-  Vector3d n = triangle_normal(F.row(0), V);
+  Vector3d c = get_center(0);
+  Vector3d n = get_normal(0);
   for (int i=0;i<F.rows();i++) {
-    Cf(i) = distance(F.row(i),c,n,V, norme);
+    Cf(i) = distance(i,c,n,V, norme);
   }
 }
 
@@ -103,12 +103,12 @@ int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, Matrix
   VectorXd furthest_distance(p);
   furthest_distance.setZero(p);
   for (int i=0;i<p; i++) {
-    Proxies_center[i] = triangle_center(F.row(Triangles[i]), V);
-    Proxies_normal[i] = triangle_normal(F.row(Triangles[i]), V);
+    Proxies_center[i] = get_center(Triangles[i]);
+    Proxies_normal[i] = get_normal(Triangles[i]);
     R(Triangles[i]) = i;
     for (int k=0;k<3;k++) {
         int tri = Ad(Triangles[i],k);
-        double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
+        double d = distance(tri, Proxies_center[i], Proxies_normal[i], V, norme);
         q.push(make_pair(-d, tri+m*(i)));
         if (d>furthest_distance(i) && !vector_contains(Triangles,tri)) {
           furthest_distance(i)=d;
@@ -134,7 +134,7 @@ int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, Matrix
 
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
-        double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
+        double d = distance(tri, Proxies_center[prox], Proxies_normal[prox], V, norme);
         q.push(make_pair(-d, tri+m*prox));
         if (d>furthest_distance(prox) && !vector_contains(Triangles,tri)) {
           furthest_distance(prox)=d;
@@ -184,7 +184,7 @@ VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi 
   //look at each face i
   for (int i=0; i<F.rows();i++) {
     int j = R(i,0);
-    d = distance(F.row(i), Proxies.row(j), Proxies.row(j+p),  V, norme);
+    d = distance(i, Proxies.row(j), Proxies.row(j+p),  V, norme);
     if (d < distances(j)) {
       distances(j) = d;
       triangles(j) = i;
@@ -211,10 +211,10 @@ double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, Matrix
     Proxies_center[i] = Proxies.row(i);
     Proxies_normal[i] = Proxies.row(i+p);
     R(triangles(i)) = i;
-    error += distance(F.row(triangles(i)), Proxies_center[i], Proxies_normal[i], V, norme);
+    error += distance(triangles(i), Proxies_center[i], Proxies_normal[i], V, norme);
     for (int k=0;k<3;k++) {
         int tri = Ad(triangles(i),k);
-        double d = distance(F.row(tri), Proxies_center[i], Proxies_normal[i], V, norme);
+        double d = distance(tri, Proxies_center[i], Proxies_normal[i], V, norme);
         q.push(make_pair(-d, tri+m*(i)));
     }
   }
@@ -235,7 +235,7 @@ double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, Matrix
       R(face) = prox;
       for (int k=0;k<3;k++) {
         int tri = Ad(face,k);
-        double d = distance(F.row(tri), Proxies_center[prox], Proxies_normal[prox], V, norme);
+        double d = distance(tri, Proxies_center[prox], Proxies_normal[prox], V, norme);
         q.push(make_pair(-d, tri+m*prox));
       }
     }
