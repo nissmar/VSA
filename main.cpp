@@ -19,6 +19,9 @@ using namespace std;
 MatrixXd V; // matrix storing vertex coordinates of the input mesh (n rows, 3 columns)
 MatrixXi F; // incidence relations between faces and edges (f columns)
 MatrixXi R; // matrix indicating the partition of each vertex
+MatrixXd newV; // matrix storing vertex coordinates of the input mesh (n rows, 3 columns)
+MatrixXi newF; // incidence relations between faces and edges (f columns)
+MatrixXi newR; // matrix indicating the partition of each vertex
 MatrixXd C; // the coloring
 MatrixXd Proxies;
 MatrixXi Ad; // face adjacency
@@ -59,6 +62,18 @@ void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
   }
 }
 
+void color_scheme(igl::opengl::glfw::Viewer &viewer, MatrixXd V, MatrixXi F) {
+  viewer.data().clear();
+  int f = F.rows();
+  MatrixXd nC(f,1);
+  for (int i=0; i<f; i++){
+    Vector3d c =(V.row(F(i,0)) + V.row(F(i,1)) + V.row(F(i,2))) / 30.0;
+    nC(i,0)=c(1);
+  }
+  igl::jet(nC,true,C);
+  viewer.data().set_mesh(V, F);
+  viewer.data().set_colors(C);
+}
 void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
   vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
   for(size_t i = 0; i < anchors.size(); i++) {
@@ -68,6 +83,7 @@ void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
   }
     
 }
+
 void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k) {
   Vector3d m1(-n(1), n(0),0);
   m1.normalize();
@@ -76,6 +92,7 @@ void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k) {
   newV.row(3*k+1) = x+m1/100.0;
   newV.row(3*k+2) = x+m2/100.0;
 }
+
 void draw_prox(igl::opengl::glfw::Viewer &viewer) {
   MatrixXd newV(3*p,3);
   MatrixXi newF(p,3);
@@ -105,8 +122,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     viewer.data().clear();
   }
   if (key=='2') {
-    viewer.data().set_mesh(V, F); // load a face-based representation of the input 3d shape
-    viewer.data().set_colors(C);
+    color_scheme(viewer, V, F);
   }
   if (key=='3') {
     // debug_regions_vides(R,p);
@@ -127,11 +143,11 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     // }
     // return true;
     pair<MatrixXi,MatrixXi> new_F_and_R = triangulation(R,anchors,V,F,*he);
-    MatrixXi newF = new_F_and_R.first;
-    MatrixXi newR = new_F_and_R.second;
+    newF = new_F_and_R.first;
+    newR = new_F_and_R.second;
 
     map<int,int> index = renumber(newF); //modifies F
-    MatrixXd newV = new_V(*he,V,Proxies,R,index);
+    newV = new_V(*he,V,Proxies,R,index);
     viewer.data().clear();
     igl::jet(newR,true,C);
     viewer.data().set_mesh(newV, newF);
@@ -154,6 +170,9 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   if (key=='9') {
     for (int i=0;i<100;i++) one_iter(viewer);
     cout << "    Done" <<endl;
+  }
+  if (key=='0') {
+    color_scheme(viewer, newV, newF);
   }
   if (key == 'S' || (unsigned int)key == 83){
     vector<double> errors;
