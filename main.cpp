@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
   cout << "Faces:    " << F.rows() << endl;
 
   // Face adjacency
-  cout << "Computing face adjacency..." << endl;
+  cout << "Computing face constants..." << endl;
   Ad = face_adjacency(F,V.rows());
   initialize_normals_areas(F,V);
   cout << "   ...done" << endl;
@@ -237,21 +237,24 @@ int main(int argc, char *argv[])
   // coloring proxies
   if (argc>=5) {
     string w = argv[4];
-    if (w=="u") {
-      cout << "uniform init" <<endl;
-
-      initial_partition(p, R, V, F, Ad, norme);
+    if (w=="f") {
+      cout << "furthest init" <<endl;
+      initial_partition2(p, R, V, F, Ad, norme);
     }
     else {
-      cout << "uniform init with L_2" <<endl;
+      cout << "random init with L_2" <<endl;
 
       norme = 0;
       initial_partition(p, R, V, F, Ad, norme);
     }
   }
   else {
-    initial_partition2(p, R, V, F, Ad, norme);
+    cout << "random init" <<endl;
+    initial_partition(p, R, V, F, Ad, norme);
   }
+  cout << "... done" <<endl;
+  cout << "... done" <<endl;
+
   Proxies = new_proxies(R, F, V, p, norme);
   iterations = 1;
   error = global_distortion_error(R,Proxies,V,F,norme);
