@@ -204,7 +204,7 @@ VectorXi find_best_triangles(MatrixXi R, MatrixXd Proxies, MatrixXd V, MatrixXi 
 }
 
 
-double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
+void proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
   int m=F.rows();
   double error=0;
   priority_queue<pair<double, int>> q; // distance, proxy
@@ -236,7 +236,6 @@ double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, Matrix
   while (q.size()!=0) {
     item = q.top();
     q.pop();
-    error += - item.first;
     prox = item.second/m;
     face = item.second%m;
     
@@ -250,6 +249,5 @@ double proxy_color(MatrixXi &R, MatrixXd Proxies, MatrixXd V, MatrixXi F, Matrix
       }
     }
   }
-  return error;
 }
 

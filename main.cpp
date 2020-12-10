@@ -78,41 +78,68 @@ void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
   vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
   for(size_t i = 0; i < anchors.size(); i++) {
     for(size_t j = 0; j < anchors[i].size(); j++) {
-      viewer.data(0).add_points(V.row(anchors[i][j]), Eigen::RowVector3d(i%3, (i+1)%3,  (i+2)%3));
+      viewer.data(0).add_points(V.row(anchors[i][j]), Eigen::RowVector3d(1,1,0));
     }
   }
     
 }
 
-void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k) {
+void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k, double r) {
   Vector3d m1(-n(1), n(0),0);
   m1.normalize();
   Vector3d m2 = n.cross(m1);
-  newV.row(3*k) = x;
-  newV.row(3*k+1) = x+m1/100.0;
-  newV.row(3*k+2) = x+m2/100.0;
+  int M=20;
+  newV.row(M*k) = x;
+  for (int i=1; i<M; i++) {
+    double t = i*2*M_PI/(M-1);
+    newV.row(M*k+i) = x + sin(t)*m1*r + cos(t)*m2*r;
+      // result.row(i) <<1,2,3;
+  }
 }
 
 void draw_prox(igl::opengl::glfw::Viewer &viewer) {
-  MatrixXd newV(3*p,3);
-  MatrixXi newF(p,3);
+  int M=20;
 
+  MatrixXd newV;
+  newV.setZero(M*p,3);
+  MatrixXi newF;
+  MatrixXi newR0;
+  newR0.setZero((M-1)*p,3);
+  newF.setZero((M-1)*p,3);
+
+  // calculate radius
+  VectorXd Radius;
+  Radius.setZero(p);
+  for(int i = 0; i < F.rows(); i++) {
+    Vector3d q = projection(get_center(i), Proxies, R(i,0));
+    Vector3d q2 = Proxies.row(R(i,0));
+    double x = (q-q2).norm();
+    if (x>Radius(R(i,0))) Radius(R(i,0)) = x;
+  }
   vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
   for(int i = 0; i < p; i++) {
-    triangle_proxy(Proxies.row(i),Proxies.row(i+p), newV, i);
-    newF.row(i) << 3*i, 3*i+1, 3*i+2;
+    triangle_proxy(Proxies.row(i),Proxies.row(i+p), newV, i, Radius(i));
+    for (int j=1; j<M-1; j++) {
+      newF.row((M-1)*i+j-1) << M*i+j,M*i,M*i+j+1;
+      newR0((M-1)*i+j-1)=i;
+    }
+    newF.row((M-1)*(i+1)-1) << M*i+M-1,M*i,M*i+1;
+    newR0((M-1)*(i+1)-1)=i;
   }
   viewer.data().clear();
   viewer.data().set_mesh(newV, newF);
+  igl::jet(newR0,true,C);
+  viewer.data(0).set_colors(C);
 
 }
 void one_iter(igl::opengl::glfw::Viewer &viewer) {
-  double error = proxy_color(R, Proxies, V,  F, Ad, norme);
+  proxy_color(R, Proxies, V,  F, Ad, norme);
   Proxies = new_proxies(R, F, V, p, norme);
   iterations += 1;
+  error = global_distortion_error(R,Proxies,V,F,norme);
   cout<<"Global Error : "<<error<<endl;
   global_error_points.push_back(make_pair(iterations,error));
-
+  precedent_error = error;
   igl::jet(R,true,C);
   viewer.data(0).set_colors(C);
 }
@@ -178,9 +205,10 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     vector<double> errors;
     while (fabs(error - precedent_error)>0.0001){
       precedent_error = error;
-      error = proxy_color(R, Proxies, V,  F, Ad, norme);
+      proxy_color(R, Proxies, V,  F, Ad, norme);
       Proxies = new_proxies(R, F, V, p, norme);
       iterations += 1;
+      error = global_distortion_error(R,Proxies,V,F,norme);
       cout << error << endl;
 
       if (vector_contains(errors,error)){
