@@ -236,9 +236,18 @@ int main(int argc, char *argv[])
 
   // coloring proxies
   if (argc>=5) {
-    norme = 0;
-    initial_partition(p, R, V, F, Ad, norme);
-    cout << "uniform init" <<endl;
+    string w = argv[4];
+    if (w=="u") {
+      cout << "uniform init" <<endl;
+
+      initial_partition(p, R, V, F, Ad, norme);
+    }
+    else {
+      cout << "uniform init with L_2" <<endl;
+
+      norme = 0;
+      initial_partition(p, R, V, F, Ad, norme);
+    }
   }
   else {
     initial_partition2(p, R, V, F, Ad, norme);

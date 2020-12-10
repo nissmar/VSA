@@ -44,6 +44,16 @@ vector<int> uniform_proxies(int k, int n) {
   return Proxies;
 }
 
+
+vector<int> random_proxies(int k, int n) {
+  vector<int> Proxies;
+  while (Proxies.size()<k){
+    int x = rand() % n;  
+    if (!vector_contains (Proxies,x)) Proxies.push_back(x);
+  }
+  return Proxies;
+}
+
 void tcolor(MatrixXi &R) {
   // color according to the face number
   int n = R.rows();
@@ -156,7 +166,7 @@ int find_triangles_region(vector<int> Triangles, MatrixXi &R, MatrixXd V, Matrix
 }
 
 void initial_partition(int p, MatrixXi &R, MatrixXd V, MatrixXi F, MatrixXi Ad, int norme) {
-  vector<int> Triangles = uniform_proxies(p,F.rows());
+  vector<int> Triangles = random_proxies(p,F.rows());
   find_triangles_region(Triangles,R,V,F,Ad,norme);
 }
 
