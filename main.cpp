@@ -51,6 +51,55 @@ void debug_regions_vides(MatrixXi R, int p){
   cout<<"fin"<<endl;
 };
 
+MatrixXd covariance(MatrixXd M) {
+  Vector3d mean = M.colwise().mean();
+  for (int j=0 ; j<M.rows(); j++) { 
+    M.row(j) -= mean;
+  }
+  return M.transpose()*M;
+}
+
+pair<Vector3d,Vector3d> compute_ellipse_vectors(int c){
+  vector<Vector3d> Radius;
+  for(int i = 0; i < F.rows(); i++) {
+    if (R(i,0)==c) {
+      for (int j=0;j<3;j++) {
+        Vector3d q = V.row(F(i,j));
+        Vector3d q2 = Proxies.row(R(i,0));
+        Radius.push_back(q-q2);
+      }
+    }
+  }
+  int k = Radius.size();
+  MatrixXd M;
+  M.setZero(k,3);
+  for (int j=0 ; j<k; j++) { 
+    M.row(j) = Radius[j];
+  }  
+  EigenSolver<MatrixXd> eig(covariance(M)/k);
+  MatrixXd ev = eig.eigenvectors().real();
+  MatrixXd eva = eig.eigenvalues().real();
+  
+  Vector3d e1,e2;
+  for (int l=0; l<3;l++) {
+    if (eva(l) == eva.maxCoeff()) {
+      e1 = ev.col(l)*pow(eva(l),0.5);
+      eva(l) = -eva(l);
+      break;
+    }
+  }
+  for (int l=0; l<3;l++) {
+    if (eva(l) == eva.maxCoeff()) {
+      e2 = ev.col(l)*pow(eva(l),0.5);
+    }
+  }
+  Vector3d n = Proxies.row(p+c);
+  if ( n.dot(e1.cross(e2))<0) {
+    return make_pair(-e1,e2);
+  }
+  return make_pair(e1,e2);
+}
+
 void draw_tangent(igl::opengl::glfw::Viewer &viewer) {
    for (int i =0; i<p;i++) {
     viewer.append_mesh();
@@ -84,15 +133,13 @@ void draw_anchors(igl::opengl::glfw::Viewer &viewer) {
     
 }
 
-void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k, double r) {
-  Vector3d m1(-n(1), n(0),0);
-  m1.normalize();
-  Vector3d m2 = n.cross(m1);
+void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k, Vector3d m1, Vector3d m2) {
+
   int M=20;
   newV.row(M*k) = x;
   for (int i=1; i<M; i++) {
     double t = i*2*M_PI/(M-1);
-    newV.row(M*k+i) = x + sin(t)*m1*r + cos(t)*m2*r;
+    newV.row(M*k+i) = x + sin(t)*2.0*m1 + cos(t)*2.0*m2;
       // result.row(i) <<1,2,3;
   }
 }
@@ -107,18 +154,9 @@ void draw_prox(igl::opengl::glfw::Viewer &viewer) {
   newR0.setZero((M-1)*p,3);
   newF.setZero((M-1)*p,3);
 
-  // calculate radius
-  VectorXd Radius;
-  Radius.setZero(p);
-  for(int i = 0; i < F.rows(); i++) {
-    Vector3d q = projection(get_center(i), Proxies, R(i,0));
-    Vector3d q2 = Proxies.row(R(i,0));
-    double x = (q-q2).norm();
-    if (x>Radius(R(i,0))) Radius(R(i,0)) = x;
-  }
-  vector<vector<int>> anchors = anchor_points(*he, R, V, Proxies,treshold);
   for(int i = 0; i < p; i++) {
-    triangle_proxy(Proxies.row(i),Proxies.row(i+p), newV, i, Radius(i));
+    pair<Vector3d,Vector3d> vec = compute_ellipse_vectors(i);  
+    triangle_proxy(Proxies.row(i),Proxies.row(i+p), newV, i, vec.first, vec.second);
     for (int j=1; j<M-1; j++) {
       newF.row((M-1)*i+j-1) << M*i+j,M*i,M*i+j+1;
       newR0((M-1)*i+j-1)=i;
