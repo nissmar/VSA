@@ -221,9 +221,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 
   }
   if (key=='6') {
-    MatrixXd nR = MatrixXd::Ones(F.rows(),1);
-    igl::jet(nR,true,C);
-    viewer.data().set_colors(C);
+    color_scheme(viewer, newV, newF);
   }
   if (key=='7') {
     draw_prox(viewer);
@@ -235,9 +233,6 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   if (key=='9') {
     for (int i=0;i<100;i++) one_iter(viewer);
     cout << "    Done" <<endl;
-  }
-  if (key=='0') {
-    color_scheme(viewer, newV, newF);
   }
   if (key == 'S' || (unsigned int)key == 83){
     vector<double> errors;

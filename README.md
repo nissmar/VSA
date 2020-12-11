@@ -18,7 +18,7 @@ L: hide/show edges
 
 2: Display mesh
 
-3: One iteration of Lloyd's algorithm
+3: One iteration (Region mapping + proxy fitting)
 
 4: Draw anchors
 
@@ -28,6 +28,6 @@ L: hide/show edges
 
 7: Draw proxies
 
-8: 10 steps
+8: 10 iterations
 
-9: 100 steps
+9: 100 iterations
