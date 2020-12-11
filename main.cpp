@@ -139,7 +139,7 @@ void triangle_proxy(Vector3d x, Vector3d n, MatrixXd& newV, int k, Vector3d m1, 
   newV.row(M*k) = x;
   for (int i=1; i<M; i++) {
     double t = i*2*M_PI/(M-1);
-    newV.row(M*k+i) = x + sin(t)*2.0*m1 + cos(t)*2.0*m2;
+    newV.row(M*k+i) = x + sin(t)*m1 + cos(t)*m2;
       // result.row(i) <<1,2,3;
   }
 }
