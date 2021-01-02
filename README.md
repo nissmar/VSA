@@ -1,8 +1,9 @@
 # VSA
 
+An implementation of the variational shape approximation method 
+
 <img src="bunny.png">
 
-An implementation of the variational shape approximation method 
 
 
 ### To run the code (from /build)
