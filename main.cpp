@@ -12,6 +12,7 @@
 #include "anchors.h"
 #include "triangulation.h"
 #include "renumbering.h"
+#include <ctime>
 
 using namespace Eigen; // to use the classes provided by Eigen library
 using namespace std;
@@ -267,6 +268,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
 // ------------ main program ----------------
 int main(int argc, char *argv[])
 {
+  // srand ( time(NULL) );
   p = 180;
   norme = 1;
   treshold = 0.4;
@@ -356,7 +358,8 @@ int main(int argc, char *argv[])
 
   viewer.callback_key_down = &key_down; // for dealing with keyboard events
   viewer.data().set_mesh(V, F); // load a face-based representation of the input 3d shape
-  viewer.data().set_colors(C);
+  // viewer.data().set_colors(C);
+  color_scheme(viewer, V, F);
   viewer.launch(); // run the editor
 
 
@@ -364,7 +367,7 @@ int main(int argc, char *argv[])
   pair<int,double> item;
   for (int i=0 ; i<global_error_points.size() ; i++){
     item = global_error_points[i];
-    cout<<"( "<<item.first<<" , "<<item.second<<" )"<<endl;
+    cout<<item.second<<endl;
   }
 }
 
