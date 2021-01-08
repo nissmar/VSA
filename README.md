@@ -1,5 +1,9 @@
 # VSA
-An implementation of the variational shape approximation method https://hal.inria.fr/file/index/docid/70632/filename/RR-5371.pdf
+
+An implementation of the [variational shape approximation method](https://hal.inria.fr/file/index/docid/70632/filename/RR-5371.pdf)
+
+<img src="bunny.gif">
+
 
 
 ### To run the code (from /build)
